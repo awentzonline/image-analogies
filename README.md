@@ -1,12 +1,12 @@
 neural image analogies
 ----------------------
-This is basically an implementation of "Image Analogies" which is described
-here: http://www.mrl.nyu.edu/projects/image-analogies/index.html In this case,
-we use feature maps from VGG16. The patch matching and blending is done with a
-method described in http://arxiv.org/abs/1601.04589
+This is basically an implementation of "texture by numbers" from this "Image Analogies" paper http://www.mrl.nyu.edu/projects/image-analogies/index.html In our case, we use feature maps from VGG16. The patch matching and blending is done with a method described in http://arxiv.org/abs/1601.04589
 
 The code is adapted from the Keras "neural style transfer" example.
-The example arch images are from the "Image Analogies" website at http://www.mrl.nyu.edu/projects/image-analogies/index.html
+
+The example arch images are from the "Image Analogies" website at http://www.mrl.nyu.edu/projects/image-analogies/tbn.html
+They have some other good examples from their own implementation which
+are worth a look.
 
 Usage
 -----
@@ -27,8 +27,6 @@ e.g.:
 
 Example
 -------
-These images are from the original "Image Analogies" website:
-
 source image (B):
 
 ![Image of arch](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch.jpg)
