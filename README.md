@@ -25,6 +25,9 @@ e.g.:
 
 `python image_analogy.py images/arch-mask.jpg images/arch.jpg images/arch-newmask.jpg out/arch`
 
+It currently resizes the images without regard to aspect ratio so just use square
+images or, better yet, make a PR.
+
 Example
 -------
 source image (B):
