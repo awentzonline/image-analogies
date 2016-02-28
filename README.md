@@ -44,3 +44,5 @@ new color-coded mask describing the desired image (A')
 the synthesized image (B')
 
 ![Image of resulting synthesis](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch-result.png)
+
+TODO: fix aspect ratio
