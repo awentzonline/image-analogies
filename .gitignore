@@ -1,0 +1,5 @@
+*.DS_Store
+*.pyc
+*.swp
+out/*
+vgg16_weights.h5
