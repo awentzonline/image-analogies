@@ -143,7 +143,7 @@ def analogy_loss(a, b, a_prime, b_prime, patch_size=3, patch_stride=1):
 
 # the 3rd loss function, total variation loss,
 # designed to keep the generated image locally coherent
-def total_variation_loss(x):
+def total_variation_loss(x, img_width, img_height):
     assert K.ndim(x) == 4
     a = K.square(x[:, :, 1:, :img_height-1] - x[:, :, :img_width-1, :img_height-1])
     b = K.square(x[:, :, :img_width-1, 1:] - x[:, :, :img_width-1, :img_height-1])
@@ -260,7 +260,7 @@ for scale_i in range(num_scales):
             patch_size=patch_size, patch_stride=patch_stride)
         loss += (style_weight / len(mrf_layers)) * sl
 
-    loss += total_variation_weight * total_variation_loss(combination_image)
+    loss += total_variation_weight * total_variation_loss(combination_image, img_width, img_height)
 
     # get the gradients of the generated image wrt the loss
     grads = K.gradients(loss, combination_image)

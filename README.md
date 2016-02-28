@@ -1,5 +1,7 @@
 neural image analogies
 ----------------------
+![Image of arch](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/image-analogy-explanation.jpg)
+
 This is basically an implementation of "texture by numbers" from this "Image Analogies" paper http://www.mrl.nyu.edu/projects/image-analogies/index.html In our case, we use feature maps from VGG16. The patch matching and blending is done with a method described in http://arxiv.org/abs/1601.04589
 
 The code is adapted from the Keras "neural style transfer" example.
@@ -27,23 +29,3 @@ e.g.:
 
 It currently resizes the images without regard to aspect ratio so just use square
 images or, better yet, make a PR.
-
-Example
--------
-source image (B):
-
-![Image of arch](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch.jpg)
-
-color-coded mask of the source image (A):
-
-![Image of arch mask](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch-mask.jpg)
-
-new color-coded mask describing the desired image (A')
-
-![Image of new arch mask](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch-newmask.jpg)
-
-the synthesized image (B')
-
-![Image of resulting synthesis](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch-result.png)
-
-TODO: fix aspect ratio
