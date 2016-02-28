@@ -2,7 +2,7 @@ neural image analogies
 ----------------------
 ![Image of arch](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/image-analogy-explanation.jpg)
 
-This is basically an implementation of "texture by numbers" from this "Image Analogies" paper http://www.mrl.nyu.edu/projects/image-analogies/index.html In our case, we use feature maps from VGG16. The patch matching and blending is done with a method described in http://arxiv.org/abs/1601.04589
+This is basically an implementation of "texture by numbers" from this "Image Analogies" paper http://www.mrl.nyu.edu/projects/image-analogies/index.html In our case, we use feature maps from VGG16. The patch matching and blending is done with a method described in "Combining Markov Random Fields and Convolutional Neural Networks for Image Synthesis" http://arxiv.org/abs/1601.04589
 
 The code is adapted from the Keras "neural style transfer" example.
 
@@ -28,4 +28,4 @@ e.g.:
 `python image_analogy.py images/arch-mask.jpg images/arch.jpg images/arch-newmask.jpg out/arch`
 
 It currently resizes the images without regard to aspect ratio so just use square
-images or, better yet, make a PR.
+images, change the full_img_width/height in the script, or better yet, make a PR.
