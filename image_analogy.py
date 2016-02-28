@@ -231,8 +231,8 @@ for scale_i in range(num_scales):
         weights = [g['param_{}'.format(p)] for p in range(g.attrs['nb_params'])]
         model.layers[k].set_weights(weights)
         layer = model.layers[k]
-        # if isinstance(layer, Convolution2D):
-        #     layer.W = layer.W[:, :, ::-1, ::-1]
+        if isinstance(layer, Convolution2D):
+            layer.W = layer.W[:, :, ::-1, ::-1]
     f.close()
     print('Model loaded.')
 
