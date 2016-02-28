@@ -24,3 +24,21 @@ and make sure the variable `weights_path` in this script matches the location of
 e.g.:
 
 `python image_analogy.py images/arch-mask.jpg images/arch.jpg images/arch-newmask.jpg out/arch`
+
+Example
+-------
+These images are from the original "Image Analogies" website:
+
+Mask A
+------
+source image (B):
+![Image of arch](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch.jpg)
+
+color-coded mask of the source image (A):
+![Image of arch mask](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch-mask.jpg)
+
+new color-coded mask describing the desired image (A')
+![Image of new arch mask](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch-newmask.jpg)
+
+the synthesized image (B')
+![Image of resulting synthesis](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/arch-result.png)
