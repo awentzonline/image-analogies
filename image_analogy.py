@@ -165,20 +165,16 @@ for scale_i in range(num_scales):
         print(img_width, img_height)
 
     # get tensor representations of our images
-    base_image = K.variable(preprocess_image(full_base_image, img_width, img_height))
-    base_mask_image = K.variable(preprocess_image(full_base_mask_image, img_width, img_height))
-    new_mask_image = K.variable(preprocess_image(full_new_mask_image, img_width, img_height))
+    base_image = preprocess_image(full_base_image, img_width, img_height)
+    base_mask_image = preprocess_image(full_base_mask_image, img_width, img_height)
+    new_mask_image = preprocess_image(full_new_mask_image, img_width, img_height)
 
     # this will contain our generated image
-    combination_image = K.placeholder((1, 3, img_height, img_width))
+    vgg_input = K.placeholder((1, 3, img_height, img_width))
 
-    # combine the 3 images into a single Keras tensor
-    input_tensor = K.concatenate([base_mask_image, base_image,
-                                  new_mask_image, combination_image,
-                                  ], axis=0)
-    # build the VGG16 network with our 3 images as input
+    # build the VGG16 network
     first_layer = ZeroPadding2D((1, 1), input_shape=(3, img_height, img_width))
-    first_layer.input = input_tensor
+    first_layer.input = vgg_input
 
     model = Sequential()
     model.add(first_layer)
@@ -239,31 +235,44 @@ for scale_i in range(num_scales):
     # get the symbolic outputs of each "key" layer (we gave them unique names).
     outputs_dict = dict([(layer.name, layer.get_output()) for layer in model.layers])
 
-    # combine these loss functions into a single scalar
+    def get_features(x, layers):
+        features = {}
+        for layer_name in layers:
+            f = K.function([vgg_input], outputs_dict[layer_name])
+            features[layer_name] = f([x])
+        return features
+
+    print('Precomputing static features...')
+    all_base_mask_features = get_features(base_mask_image, set(analogy_layers + mrf_layers))
+    all_base_image_features = get_features(base_image, set(analogy_layers + mrf_layers))
+    all_new_mask_features = get_features(new_mask_image, set(analogy_layers + mrf_layers))
+
+    # combine the loss functions into a single scalar
+    print('Building loss function...')
     loss = K.variable(0.)
 
     for layer_name in analogy_layers:
         layer_features = outputs_dict[layer_name]
-        base_mask_features = layer_features[0, :, :, :]
-        base_image_features = layer_features[1, :, :, :]
-        new_mask_features = layer_features[2, :, :, :]
-        combination_features = layer_features[3, :, :, :]
+        base_mask_features = K.variable(all_base_mask_features[layer_name][0])
+        base_image_features = K.variable(all_base_image_features[layer_name][0])
+        new_mask_features = K.variable(all_new_mask_features[layer_name][0])
+        combination_features = layer_features[0, :, :, :]
         al = analogy_loss(base_mask_features, base_image_features,
             new_mask_features, combination_features)
         loss += (analogy_weight / len(analogy_layers)) * al
 
     for layer_name in mrf_layers:
         layer_features = outputs_dict[layer_name]
-        base_image_features = layer_features[1, :, :, :]
-        combination_features = layer_features[3, :, :, :]
+        base_image_features = K.variable(all_base_image_features[layer_name][0])
+        combination_features = layer_features[0, :, :, :]
         sl = mrf_loss(base_image_features, combination_features,
             patch_size=patch_size, patch_stride=patch_stride)
         loss += (style_weight / len(mrf_layers)) * sl
 
-    loss += total_variation_weight * total_variation_loss(combination_image, img_width, img_height)
+    loss += total_variation_weight * total_variation_loss(vgg_input, img_width, img_height)
 
     # get the gradients of the generated image wrt the loss
-    grads = K.gradients(loss, combination_image)
+    grads = K.gradients(loss, vgg_input)
 
     outputs = [loss]
     if type(grads) in {list, tuple}:
@@ -271,7 +280,7 @@ for scale_i in range(num_scales):
     else:
         outputs.append(grads)
 
-    f_outputs = K.function([combination_image], outputs)
+    f_outputs = K.function([vgg_input], outputs)
     def eval_loss_and_grads(x):
         x = x.reshape((1, 3, img_height, img_width))
         outs = f_outputs([x])
