@@ -64,8 +64,8 @@ mrf_layers = ['conv3_1', 'conv4_1']
 full_img_width = 450
 full_img_height = 450
 
-num_iterations_per_scale = 8
-num_scales = 4  # run the algorithm at a few different sizes
+num_iterations_per_scale = 7
+num_scales = 3  # run the algorithm at a few different sizes
 min_scale_factor = 0.25
 if num_scales > 1:
     step_scale_factor = (1 - min_scale_factor) / (num_scales - 1)
@@ -80,7 +80,7 @@ def load_and_preprocess_image(image_path, img_width, img_height):
 
 # util function to open, resize and format pictures into appropriate tensors
 def preprocess_image(x, img_width, img_height):
-    img = imresize(x, (img_width, img_height))
+    img = imresize(x, (img_height, img_width))
     img = img.transpose((2, 0, 1)).astype('float64')
     img[:, :, 0] -= 103.939
     img[:, :, 1] -= 116.779
@@ -145,8 +145,8 @@ def analogy_loss(a, b, a_prime, b_prime, patch_size=3, patch_stride=1):
 # designed to keep the generated image locally coherent
 def total_variation_loss(x, img_width, img_height):
     assert K.ndim(x) == 4
-    a = K.square(x[:, :, 1:, :img_height-1] - x[:, :, :img_width-1, :img_height-1])
-    b = K.square(x[:, :, :img_width-1, 1:] - x[:, :, :img_width-1, :img_height-1])
+    a = K.square(x[:, :, 1:, :img_width-1] - x[:, :, :img_height-1, :img_width-1])
+    b = K.square(x[:, :, :img_height-1, 1:] - x[:, :, :img_height-1, :img_width-1])
     return K.sum(K.pow(a + b, 1.25))
 
 full_base_image = imread(base_image_path)
@@ -170,14 +170,14 @@ for scale_i in range(num_scales):
     new_mask_image = K.variable(preprocess_image(full_new_mask_image, img_width, img_height))
 
     # this will contain our generated image
-    combination_image = K.placeholder((1, 3, img_width, img_height))
+    combination_image = K.placeholder((1, 3, img_height, img_width))
 
     # combine the 3 images into a single Keras tensor
     input_tensor = K.concatenate([base_mask_image, base_image,
                                   new_mask_image, combination_image,
                                   ], axis=0)
     # build the VGG16 network with our 3 images as input
-    first_layer = ZeroPadding2D((1, 1), input_shape=(3, img_width, img_height))
+    first_layer = ZeroPadding2D((1, 1), input_shape=(3, img_height, img_width))
     first_layer.input = input_tensor
 
     model = Sequential()
@@ -273,7 +273,7 @@ for scale_i in range(num_scales):
 
     f_outputs = K.function([combination_image], outputs)
     def eval_loss_and_grads(x):
-        x = x.reshape((1, 3, img_width, img_height))
+        x = x.reshape((1, 3, img_height, img_width))
         outs = f_outputs([x])
         loss_value = outs[0]
         if len(outs[1:]) == 1:
@@ -318,7 +318,7 @@ for scale_i in range(num_scales):
                                          fprime=evaluator.grads, maxfun=20)
         print('Current loss value:', min_val)
         # save current generated image
-        x = x.reshape((3, img_width, img_height))
+        x = x.reshape((3, img_height, img_width))
         img = deprocess_image(x)
         fname = result_prefix + '_at_iteration_%d_%d.png' % (scale_i, i)
         imsave(fname, img)
