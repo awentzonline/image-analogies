@@ -97,6 +97,7 @@ def deprocess_image(x):
     x = np.clip(x, 0, 255).astype('uint8')
     return x
 
+# loss functions
 
 def make_patches(x, patch_size, patch_stride):
     from theano.tensor.nnet.neighbours import images2neibs
@@ -110,33 +111,33 @@ def make_patches(x, patch_size, patch_stride):
     patches_norm = K.l2_normalize(patches, 1)
     return patches, patches_norm
 
+def find_patch_matches(a, b):
+    # find the best matching patches
+    # we want cross-correlation here so flip the kernels
+    convs = K.conv2d(a, b[:, :, ::-1, ::-1], border_mode='valid')
+    argmax = K.argmax(convs, axis=1)
+    return argmax
+
 # CNNMRF http://arxiv.org/pdf/1601.04589v1.pdf
 def mrf_loss(style, combination, patch_size=3, patch_stride=1):
-    from theano.tensor.nnet.neighbours import images2neibs
-    # extract patches from style and generated feature maps
+    # extract patches from feature maps
     combination_patches, combination_patches_norm = make_patches(combination, patch_size, patch_stride)
     style_patches, style_patches_norm = make_patches(style, patch_size, patch_stride)
-    # find the best matching patches
-    convs = K.conv2d(
-        combination_patches_norm, style_patches_norm[:, :, ::-1, ::-1], # we want cross-correlation here so flip the kernels
-        border_mode='valid')
-    argmax = K.argmax(convs, axis=1)
-    best_style_patches = K.reshape(style_patches[argmax], K.shape(combination_patches))
+    # find best patches and calculate loss
+    patch_ids = find_patch_matches(combination_patches_norm, style_patches_norm)
+    best_style_patches = K.reshape(style_patches[patch_ids], K.shape(combination_patches))
     loss = K.sum(K.square(best_style_patches - combination_patches))
     return loss
 
 # http://www.mrl.nyu.edu/projects/image-analogies/index.html
 def analogy_loss(a, b, a_prime, b_prime, patch_size=3, patch_stride=1):
-    # extract patches from style and generated feature maps
+    # extract patches from feature maps
     a_patches, a_patches_norm = make_patches(a, patch_size, patch_stride)
     a_prime_patches, a_prime_patches_norm = make_patches(a_prime, patch_size, patch_stride)
     b_patches, b_patches_norm = make_patches(b, patch_size, patch_stride)
     b_prime_patches, b_prime_patches_norm = make_patches(b_prime, patch_size, patch_stride)
-
-    q = K.conv2d(
-        a_prime_patches_norm, a_patches_norm[:, :, ::-1, ::-1], # we want cross-correlation here so flip the kernels
-        border_mode='valid')
-    q = K.argmax(q, axis=1)
+    # find best patches and calculate loss
+    q = find_patch_matches(a_prime_patches_norm, a_patches_norm)
     best_patches = K.reshape(b_patches[q], K.shape(b_prime_patches))
     loss = K.sum(K.square(best_patches - b_prime_patches))
     return loss
