@@ -20,6 +20,7 @@ It is preferrable to run this script on GPU, for speed.
 '''
 
 from __future__ import print_function
+import scipy.ndimage
 from scipy.misc import imread, imresize, imsave
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
@@ -78,22 +79,32 @@ def load_and_preprocess_image(image_path, img_width, img_height):
     img = preprocess_image(imread(image_path), img_width, img_height)
     return img
 
+def add_vgg_mean(x):
+    x[:, :, 0] += 103.939
+    x[:, :, 1] += 116.779
+    x[:, :, 2] += 123.68
+    return x
+
+def sub_vgg_mean(x):
+    x[:, :, 0] -= 103.939
+    x[:, :, 1] -= 116.779
+    x[:, :, 2] -= 123.68
+    return x
+
 # util function to open, resize and format pictures into appropriate tensors
 def preprocess_image(x, img_width, img_height):
-    img = imresize(x, (img_height, img_width))
-    img = img.transpose((2, 0, 1)).astype('float64')
-    # img[:, :, 0] -= 103.939
-    # img[:, :, 1] -= 116.779
-    # img[:, :, 2] -= 123.68
+    img = imresize(x, (img_height, img_width)).astype('float64')
+    img = img[:,:,::-1]  # I think this uses BGR instead of RGB
+    img = sub_vgg_mean(img)
+    img = img.transpose((2, 0, 1))
     img = np.expand_dims(img, axis=0)
     return img
 
 # util function to convert a tensor into a valid image
 def deprocess_image(x):
-    # x[:, :, 0] += 103.939
-    # x[:, :, 1] += 116.779
-    # x[:, :, 2] += 123.68
     x = x.transpose((1, 2, 0))
+    x = add_vgg_mean(x)
+    x = x[:,:,::-1]  # back to RGB
     x = np.clip(x, 0, 255).astype('uint8')
     return x
 
@@ -160,10 +171,15 @@ for scale_i in range(num_scales):
     img_width = int(round(full_img_width * scale_factor))
     img_height = int(round(full_img_height * scale_factor))
     if x is None:
-        x = np.random.uniform(0, 255, (1, 3, img_width, img_height))
-    else:
-        x = preprocess_image(deprocess_image(x), img_width, img_height)
-        print(img_width, img_height)
+        x = np.random.uniform(0, 255, (img_height, img_width, 3))
+        x[:,:,::-1]
+        x = sub_vgg_mean(x)
+        x = x.transpose(2, 0, 1)
+    else:  # resize the last state
+        zoom_ratio = img_width / float(x.shape[-1])
+        x = scipy.ndimage.zoom(x, (1, zoom_ratio, zoom_ratio), order=1)
+        img_height, img_width = x.shape[-2:]
+    print(scale_factor, x.shape)
 
     # get tensor representations of our images
     base_image = preprocess_image(full_base_image, img_width, img_height)
@@ -329,7 +345,7 @@ for scale_i in range(num_scales):
         print('Current loss value:', min_val)
         # save current generated image
         x = x.reshape((3, img_height, img_width))
-        img = deprocess_image(x)
+        img = deprocess_image(np.copy(x))
         fname = result_prefix + '_at_iteration_%d_%d.png' % (scale_i, i)
         imsave(fname, img)
         end_time = time.time()
