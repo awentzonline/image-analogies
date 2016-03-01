@@ -53,7 +53,7 @@ weights_path = 'vgg16_weights.h5'
 
 # these are the weights of the different loss components
 total_variation_weight = 1.0
-analogy_weight = 1.0
+analogy_weight = 2.0
 style_weight = 1.0
 patch_size = 3
 patch_stride = 1
@@ -62,10 +62,10 @@ analogy_layers = ['conv3_1', 'conv4_1']
 mrf_layers = ['conv3_1', 'conv4_1']
 
 # dimensions of the generated picture.
-full_img_width = 450
-full_img_height = 450
+full_img_width = 512
+full_img_height = 512
 
-num_iterations_per_scale = 7
+num_iterations_per_scale = 5
 num_scales = 3  # run the algorithm at a few different sizes
 min_scale_factor = 0.25
 if num_scales > 1:
