@@ -172,7 +172,7 @@ for scale_i in range(num_scales):
     img_height = int(round(full_img_height * scale_factor))
     if x is None:
         x = np.random.uniform(0, 255, (img_height, img_width, 3))
-        x[:,:,::-1]
+        x = x[:,:,::-1]  # to BGR
         x = sub_vgg_mean(x)
         x = x.transpose(2, 0, 1)
     else:  # resize the last state
@@ -337,7 +337,7 @@ for scale_i in range(num_scales):
 
     # run scipy-based optimization (L-BFGS) over the pixels of the generated image
     # so as to minimize the neural style loss
-    for i in range(num_iterations_per_scale): # scale_i + 2): #
+    for i in range(num_iterations_per_scale):
         print('Start of iteration', scale_i, i)
         start_time = time.time()
         x, min_val, info = fmin_l_bfgs_b(evaluator.loss, x.flatten(),
