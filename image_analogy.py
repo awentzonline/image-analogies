@@ -43,18 +43,36 @@ parser.add_argument('new_mask_image_path', metavar='ref', type=str,
                     help='Path to the new mask for generation.')
 parser.add_argument('result_prefix', metavar='res_prefix', type=str,
                     help='Prefix for the saved results.')
+parser.add_argument('--width', dest='out_width', type=int,
+                    default=512, help='Set output width.')
+parser.add_argument('--height', dest='out_height', type=int,
+                    default=512, help='Set output height')
+parser.add_argument('--scales', dest='num_scales', type=int,
+                    default=3, help='Run at N different scales.')
+parser.add_argument('--iters', dest='num_iterations', type=int,
+                    default=5, help='Number of iterations per scale.')
+parser.add_argument('--min-scale', dest='min_scale', type=float,
+                    default=0.25, help='Smallest scale to iterate.')
+parser.add_argument('--style-w', dest='style_weight', type=float,
+                    default=1.0, help='Weight for MRF loss.')
+parser.add_argument('--analogy-w', dest='analogy_weight', type=float,
+                    default=2.0, help='Weight for analogy loss.')
+parser.add_argument('--tv-w', dest='tv_weight', type=float,
+                    default=1.0, help='Weight for TV loss.')
+parser.add_argument('--vgg-weights', dest='vgg_weights', type=str,
+                    default='vgg16_weights.h5', help='Path to VGG16 weights.')
 
 args = parser.parse_args()
 base_image_path = args.base_image_path
 base_mask_image_path = args.base_mask_image_path
 new_mask_image_path = args.new_mask_image_path
 result_prefix = args.result_prefix
-weights_path = 'vgg16_weights.h5'
+weights_path = args.vgg_weights
 
 # these are the weights of the different loss components
-total_variation_weight = 1.0
-analogy_weight = 2.0
-style_weight = 1.0
+total_variation_weight = args.tv_weight
+analogy_weight = args.analogy_weight
+style_weight = args.style_weight
 patch_size = 3
 patch_stride = 1
 
@@ -62,12 +80,12 @@ analogy_layers = ['conv3_1', 'conv4_1']
 mrf_layers = ['conv3_1', 'conv4_1']
 
 # dimensions of the generated picture.
-full_img_width = 512
-full_img_height = 512
+full_img_width = args.out_width
+full_img_height = args.out_height
 
-num_iterations_per_scale = 5
-num_scales = 3  # run the algorithm at a few different sizes
-min_scale_factor = 0.25
+num_iterations_per_scale = args.num_iterations
+num_scales = args.num_scales
+min_scale_factor = args.min_scale
 if num_scales > 1:
     step_scale_factor = (1 - min_scale_factor) / (num_scales - 1)
 else:
