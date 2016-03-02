@@ -15,7 +15,7 @@ Installation
 ------------
 You'll want to run this on a GPU.
 
-Install latest keras and theano (requires theano, no tensorflow atm).
+[Install latest keras and theano](http://keras.io/#installation) (requires theano, no tensorflow atm).
 
 Before running this script, download the weights for the VGG16 model at:
 https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
