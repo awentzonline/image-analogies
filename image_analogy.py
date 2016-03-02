@@ -1,4 +1,4 @@
-'''Image Analogies with Keras
+'''Neural Image Analogies with Keras
 
 Before running this script, download the weights for the VGG16 model at:
 https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
@@ -34,7 +34,7 @@ from keras.layers.convolutional import Convolution2D, ZeroPadding2D, MaxPooling2
 from keras import backend as K
 
 
-parser = argparse.ArgumentParser(description='Neural style transfer with Keras.')
+parser = argparse.ArgumentParser(description='Neural image analogies with Keras.')
 parser.add_argument('base_mask_image_path', metavar='ref', type=str,
                     help='Path to the reference image mask.')
 parser.add_argument('base_image_path', metavar='base', type=str,
@@ -44,9 +44,9 @@ parser.add_argument('new_mask_image_path', metavar='ref', type=str,
 parser.add_argument('result_prefix', metavar='res_prefix', type=str,
                     help='Prefix for the saved results.')
 parser.add_argument('--width', dest='out_width', type=int,
-                    default=512, help='Set output width.')
+                    default=0, help='Set output width.')
 parser.add_argument('--height', dest='out_height', type=int,
-                    default=512, help='Set output height')
+                    default=0, help='Set output height')
 parser.add_argument('--scales', dest='num_scales', type=int,
                     default=3, help='Run at N different scales.')
 parser.add_argument('--iters', dest='num_iterations', type=int,
@@ -78,10 +78,6 @@ patch_stride = 1
 
 analogy_layers = ['conv3_1', 'conv4_1']
 mrf_layers = ['conv3_1', 'conv4_1']
-
-# dimensions of the generated picture.
-full_img_width = args.out_width
-full_img_height = args.out_height
 
 num_iterations_per_scale = args.num_iterations
 num_scales = args.num_scales
@@ -182,6 +178,22 @@ def total_variation_loss(x, img_width, img_height):
 full_base_image = imread(base_image_path)
 full_base_mask_image = imread(base_mask_image_path)
 full_new_mask_image = imread(new_mask_image_path)
+
+# dimensions of the generated picture.
+# default to the size of the new mask image
+full_img_width = full_new_mask_image.shape[1]
+full_img_height = full_new_mask_image.shape[0]
+if args.out_width or args.out_height:
+    if args.out_width and args.out_height:
+        full_img_width = args.out_width
+        full_img_height = args.out_height
+    else:
+        if args.out_width:
+            full_img_height = int(round(args.out_width / float(full_img_width) * full_img_height))
+            full_img_width = args.out_width
+        else:
+            full_img_width = int(round(args.out_height / float(full_img_height) * full_img_width))
+            full_img_height = args.out_height
 
 x = None
 for scale_i in range(num_scales):

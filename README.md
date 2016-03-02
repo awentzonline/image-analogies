@@ -11,8 +11,8 @@ The example arch images are from the "Image Analogies" website at http://www.mrl
 They have some other good examples from their own implementation which
 are worth a look.
 
-Usage
------
+Installation
+------------
 You'll want to run this on a GPU.
 
 Install latest keras and theano (requires theano, no tensorflow atm).
@@ -20,13 +20,30 @@ Install latest keras and theano (requires theano, no tensorflow atm).
 Before running this script, download the weights for the VGG16 model at:
 https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
 (source: https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3)
-and make sure the variable `weights_path` in this script matches the location of the file.
+and make sure the variable `weights_path` in this script matches the location of the file or use the `--vgg-weights` parameter
 
+Example script usage:
 `python image_analogy.py path_to_your_base_mask.jpg path_to_your_reference.jpg path_to_new_mask prefix_for_results`
 
 e.g.:
 
 `python image_analogy.py images/arch-mask.jpg images/arch.jpg images/arch-newmask.jpg out/arch`
 
-It currently resizes the images without regard to aspect ratio so just use square
-images, change the full_img_width/height in the script, or better yet, make a PR.
+Currently, the images are all assumed to be the same size. Output size is the same
+as the new mask image, unless specified otherwise.
+
+Parameters
+----------
+
+ * --width Set image output max width.
+ * --height Set image output max height.
+ * --scales Run at N different scales
+ * --iters Number of iterations per scale.
+ * --min-scale Smallest scale to iterate.
+ * --style-w Weight for MRF loss.
+ * --analogy-w Weight for analogy loss.
+ * --tv-w Weight for TV loss.
+ * --vgg-weights Path to VGG16 weights.
+
+The analogy loss is the amount of influence of B -> A -> A' -> B'
+The style loss is the influence of B' -> A' -> B
