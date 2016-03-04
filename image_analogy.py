@@ -9,7 +9,7 @@ This is adapted from the Keras "neural style transfer" example code.
 
 Run the script with:
 ```
-python image_analogy.py path_to_your_base_image_mask.jpg path_to_your_reference.jpg path_to_new_mask prefix_for_results
+python image_analogy.py path_to_your_ap_image_mask.jpg path_to_your_reference.jpg path_to_b prefix_for_results
 ```
 e.g.:
 ```
@@ -35,26 +35,26 @@ from keras import backend as K
 
 
 parser = argparse.ArgumentParser(description='Neural image analogies with Keras.')
-parser.add_argument('base_mask_image_path', metavar='ref', type=str,
-                    help='Path to the reference image mask.')
-parser.add_argument('base_image_path', metavar='base', type=str,
-                    help='Path to the source image.')
-parser.add_argument('new_mask_image_path', metavar='ref', type=str,
-                    help='Path to the new mask for generation.')
+parser.add_argument('a_image_path', metavar='ref', type=str,
+                    help='Path to the reference image mask (A)')
+parser.add_argument('ap_image_path', metavar='base', type=str,
+                    help='Path to the source image (A\')')
+parser.add_argument('b_image_path', metavar='ref', type=str,
+                    help='Path to the new mask for generation (B)')
 parser.add_argument('result_prefix', metavar='res_prefix', type=str,
-                    help='Prefix for the saved results.')
+                    help='Prefix for the saved results (B\')')
 parser.add_argument('--width', dest='out_width', type=int,
-                    default=0, help='Set output width.')
+                    default=0, help='Set output width')
 parser.add_argument('--height', dest='out_height', type=int,
                     default=0, help='Set output height')
 parser.add_argument('--scales', dest='num_scales', type=int,
-                    default=3, help='Run at N different scales.')
+                    default=3, help='Run at N different scales')
 parser.add_argument('--iters', dest='num_iterations', type=int,
-                    default=5, help='Number of iterations per scale.')
+                    default=5, help='Number of iterations per scale')
 parser.add_argument('--min-scale', dest='min_scale', type=float,
-                    default=0.25, help='Smallest scale to iterate.')
+                    default=0.25, help='Smallest scale to iterate')
 parser.add_argument('--style-w', dest='style_weight', type=float,
-                    default=1.0, help='Weight for MRF loss.')
+                    default=1.0, help='Weight for MRF loss')
 parser.add_argument('--analogy-w', dest='analogy_weight', type=float,
                     default=2.0, help='Weight for analogy loss.')
 parser.add_argument('--tv-w', dest='tv_weight', type=float,
@@ -63,9 +63,9 @@ parser.add_argument('--vgg-weights', dest='vgg_weights', type=str,
                     default='vgg16_weights.h5', help='Path to VGG16 weights.')
 
 args = parser.parse_args()
-base_image_path = args.base_image_path
-base_mask_image_path = args.base_mask_image_path
-new_mask_image_path = args.new_mask_image_path
+a_image_path = args.a_image_path
+ap_image_path = args.ap_image_path
+b_image_path = args.b_image_path
 result_prefix = args.result_prefix
 weights_path = args.vgg_weights
 
@@ -137,7 +137,7 @@ def make_patches(x, patch_size, patch_stride):
     return patches, patches_norm
 
 def find_patch_matches(a, b):
-    # find the best matching patches
+    # for each patch in A, find the best matching patch in B
     # we want cross-correlation here so flip the kernels
     convs = K.conv2d(a, b[:, :, ::-1, ::-1], border_mode='valid')
     argmax = K.argmax(convs, axis=1)
@@ -155,15 +155,15 @@ def mrf_loss(style, combination, patch_size=3, patch_stride=1):
     return loss
 
 # http://www.mrl.nyu.edu/projects/image-analogies/index.html
-def analogy_loss(a, b, a_prime, b_prime, patch_size=3, patch_stride=1):
+def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1):
     # extract patches from feature maps
     a_patches, a_patches_norm = make_patches(a, patch_size, patch_stride)
     a_prime_patches, a_prime_patches_norm = make_patches(a_prime, patch_size, patch_stride)
     b_patches, b_patches_norm = make_patches(b, patch_size, patch_stride)
     b_prime_patches, b_prime_patches_norm = make_patches(b_prime, patch_size, patch_stride)
     # find best patches and calculate loss
-    q = find_patch_matches(a_prime_patches_norm, a_patches_norm)
-    best_patches = K.reshape(b_patches[q], K.shape(b_prime_patches))
+    q = find_patch_matches(b_patches_norm, a_patches_norm)
+    best_patches = K.reshape(a_prime_patches[q], K.shape(a_prime_patches))
     loss = K.sum(K.square(best_patches - b_prime_patches))
     return loss
 
@@ -175,14 +175,14 @@ def total_variation_loss(x, img_width, img_height):
     b = K.square(x[:, :, :img_height-1, 1:] - x[:, :, :img_height-1, :img_width-1])
     return K.sum(K.pow(a + b, 1.25))
 
-full_base_image = imread(base_image_path)
-full_base_mask_image = imread(base_mask_image_path)
-full_new_mask_image = imread(new_mask_image_path)
+full_ap_image = imread(ap_image_path)
+full_a_image = imread(a_image_path)
+full_b_image = imread(b_image_path)
 
 # dimensions of the generated picture.
 # default to the size of the new mask image
-full_img_width = full_new_mask_image.shape[1]
-full_img_height = full_new_mask_image.shape[0]
+full_img_width = full_b_image.shape[1]
+full_img_height = full_b_image.shape[0]
 if args.out_width or args.out_height:
     if args.out_width and args.out_height:
         full_img_width = args.out_width
@@ -212,9 +212,9 @@ for scale_i in range(num_scales):
     print(scale_factor, x.shape)
 
     # get tensor representations of our images
-    base_image = preprocess_image(full_base_image, img_width, img_height)
-    base_mask_image = preprocess_image(full_base_mask_image, img_width, img_height)
-    new_mask_image = preprocess_image(full_new_mask_image, img_width, img_height)
+    ap_image = preprocess_image(full_ap_image, img_width, img_height)
+    a_image = preprocess_image(full_a_image, img_width, img_height)
+    b_image = preprocess_image(full_b_image, img_width, img_height)
 
     # this will contain our generated image
     vgg_input = K.placeholder((1, 3, img_height, img_width))
@@ -290,9 +290,9 @@ for scale_i in range(num_scales):
         return features
 
     print('Precomputing static features...')
-    all_base_mask_features = get_features(base_mask_image, set(analogy_layers + mrf_layers))
-    all_base_image_features = get_features(base_image, set(analogy_layers + mrf_layers))
-    all_new_mask_features = get_features(new_mask_image, set(analogy_layers + mrf_layers))
+    all_a_features = get_features(a_image, set(analogy_layers + mrf_layers))
+    all_ap_image_features = get_features(ap_image, set(analogy_layers + mrf_layers))
+    all_b_features = get_features(b_image, set(analogy_layers + mrf_layers))
 
     # combine the loss functions into a single scalar
     print('Building loss function...')
@@ -300,19 +300,19 @@ for scale_i in range(num_scales):
 
     for layer_name in analogy_layers:
         layer_features = outputs_dict[layer_name]
-        base_mask_features = K.variable(all_base_mask_features[layer_name][0])
-        base_image_features = K.variable(all_base_image_features[layer_name][0])
-        new_mask_features = K.variable(all_new_mask_features[layer_name][0])
+        a_features = K.variable(all_a_features[layer_name][0])
+        ap_image_features = K.variable(all_ap_image_features[layer_name][0])
+        b_features = K.variable(all_b_features[layer_name][0])
         combination_features = layer_features[0, :, :, :]
-        al = analogy_loss(base_mask_features, base_image_features,
-            new_mask_features, combination_features)
+        al = analogy_loss(a_features, ap_image_features,
+            b_features, combination_features)
         loss += (analogy_weight / len(analogy_layers)) * al
 
     for layer_name in mrf_layers:
         layer_features = outputs_dict[layer_name]
-        base_image_features = K.variable(all_base_image_features[layer_name][0])
+        ap_image_features = K.variable(all_ap_image_features[layer_name][0])
         combination_features = layer_features[0, :, :, :]
-        sl = mrf_loss(base_image_features, combination_features,
+        sl = mrf_loss(ap_image_features, combination_features,
             patch_size=patch_size, patch_stride=patch_stride)
         loss += (style_weight / len(mrf_layers)) * sl
 

@@ -23,7 +23,7 @@ https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
 and make sure the variable `weights_path` in this script matches the location of the file or use the `--vgg-weights` parameter
 
 Example script usage:
-`python image_analogy.py path_to_your_base_mask.jpg path_to_your_reference.jpg path_to_new_mask prefix_for_results`
+`python image_analogy.py path_to_A path_to_A_prime path_to_B prefix_for_B_prime`
 
 e.g.:
 
