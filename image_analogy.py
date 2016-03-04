@@ -162,8 +162,8 @@ def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1):
     b_patches, b_patches_norm = make_patches(b, patch_size, patch_stride)
     b_prime_patches, b_prime_patches_norm = make_patches(b_prime, patch_size, patch_stride)
     # find best patches and calculate loss
-    q = find_patch_matches(b_patches_norm, a_patches_norm)
-    best_patches = K.reshape(a_prime_patches[q], K.shape(a_prime_patches))
+    p = find_patch_matches(b_patches_norm, a_patches_norm)
+    best_patches = K.reshape(a_prime_patches[p], K.shape(a_prime_patches))
     loss = K.sum(K.square(best_patches - b_prime_patches))
     return loss
 
