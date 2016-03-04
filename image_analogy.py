@@ -53,8 +53,8 @@ parser.add_argument('--iters', dest='num_iterations', type=int,
                     default=5, help='Number of iterations per scale')
 parser.add_argument('--min-scale', dest='min_scale', type=float,
                     default=0.25, help='Smallest scale to iterate')
-parser.add_argument('--style-w', dest='style_weight', type=float,
-                    default=1.0, help='Weight for MRF loss')
+parser.add_argument('--mrf-w', dest='mrf_weight', type=float,
+                    default=1.0, help='Weight for MRF loss between A\' and B\'')
 parser.add_argument('--analogy-w', dest='analogy_weight', type=float,
                     default=2.0, help='Weight for analogy loss.')
 parser.add_argument('--tv-w', dest='tv_weight', type=float,
@@ -72,7 +72,7 @@ weights_path = args.vgg_weights
 # these are the weights of the different loss components
 total_variation_weight = args.tv_weight
 analogy_weight = args.analogy_weight
-style_weight = args.style_weight
+mrf_weight = args.mrf_weight
 patch_size = 3
 patch_stride = 1
 
@@ -144,14 +144,14 @@ def find_patch_matches(a, b):
     return argmax
 
 # CNNMRF http://arxiv.org/pdf/1601.04589v1.pdf
-def mrf_loss(style, combination, patch_size=3, patch_stride=1):
+def mrf_loss(source, combination, patch_size=3, patch_stride=1):
     # extract patches from feature maps
     combination_patches, combination_patches_norm = make_patches(combination, patch_size, patch_stride)
-    style_patches, style_patches_norm = make_patches(style, patch_size, patch_stride)
+    source_patches, source_patches_norm = make_patches(source, patch_size, patch_stride)
     # find best patches and calculate loss
-    patch_ids = find_patch_matches(combination_patches_norm, style_patches_norm)
-    best_style_patches = K.reshape(style_patches[patch_ids], K.shape(combination_patches))
-    loss = K.sum(K.square(best_style_patches - combination_patches))
+    patch_ids = find_patch_matches(combination_patches_norm, source_patches_norm)
+    best_source_patches = K.reshape(source_patches[patch_ids], K.shape(combination_patches))
+    loss = K.sum(K.square(best_source_patches - combination_patches))
     return loss
 
 # http://www.mrl.nyu.edu/projects/image-analogies/index.html
@@ -314,7 +314,7 @@ for scale_i in range(num_scales):
         combination_features = layer_features[0, :, :, :]
         sl = mrf_loss(ap_image_features, combination_features,
             patch_size=patch_size, patch_stride=patch_stride)
-        loss += (style_weight / len(mrf_layers)) * sl
+        loss += (mrf_weight / len(mrf_layers)) * sl
 
     loss += total_variation_weight * total_variation_loss(vgg_input, img_width, img_height)
 

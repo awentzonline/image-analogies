@@ -35,15 +35,15 @@ as the new mask image, unless specified otherwise.
 Parameters
 ----------
 
- * --width Set image output max width.
- * --height Set image output max height.
+ * --width Sets image output max width
+ * --height Sets image output max height
  * --scales Run at N different scales
- * --iters Number of iterations per scale.
- * --min-scale Smallest scale to iterate.
- * --style-w Weight for MRF loss.
- * --analogy-w Weight for analogy loss.
- * --tv-w Weight for TV loss.
- * --vgg-weights Path to VGG16 weights.
+ * --iters Number of iterations per scale
+ * --min-scale Smallest scale to iterate
+ * --mrf-w Weight for MRF loss between A' and B'
+ * --analogy-w Weight for analogy loss
+ * --tv-w Weight for total variation loss
+ * --vgg-weights Path to VGG16 weights
 
 The analogy loss is the amount of influence of B -> A -> A' -> B'
-The style loss is the influence of B' -> A' -> B
+The mrf loss is the influence of B' -> A' -> B'
