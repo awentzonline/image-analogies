@@ -55,6 +55,8 @@ parser.add_argument('--min-scale', dest='min_scale', type=float,
                     default=0.25, help='Smallest scale to iterate')
 parser.add_argument('--mrf-w', dest='mrf_weight', type=float,
                     default=1.0, help='Weight for MRF loss between A\' and B\'')
+parser.add_argument('--b-content-w', dest='b_bp_content_weight', type=float,
+                    default=0.0, help='Weight for content loss between B and B\'')
 parser.add_argument('--analogy-w', dest='analogy_weight', type=float,
                     default=2.0, help='Weight for analogy loss.')
 parser.add_argument('--tv-w', dest='tv_weight', type=float,
@@ -72,12 +74,14 @@ weights_path = args.vgg_weights
 # these are the weights of the different loss components
 total_variation_weight = args.tv_weight
 analogy_weight = args.analogy_weight
+b_bp_content_weight = args.b_bp_content_weight
 mrf_weight = args.mrf_weight
 patch_size = 3
 patch_stride = 1
 
 analogy_layers = ['conv3_1', 'conv4_1']
 mrf_layers = ['conv3_1', 'conv4_1']
+b_content_layers = ['conv3_1', 'conv4_1']
 
 num_iterations_per_scale = args.num_iterations
 num_scales = args.num_scales
@@ -174,6 +178,10 @@ def total_variation_loss(x, img_width, img_height):
     a = K.square(x[:, :, 1:, :img_width-1] - x[:, :, :img_height-1, :img_width-1])
     b = K.square(x[:, :, :img_height-1, 1:] - x[:, :, :img_height-1, :img_width-1])
     return K.sum(K.pow(a + b, 1.25))
+
+def content_loss(a, b):
+    return K.sum(K.square(a - b))
+
 
 full_ap_image = imread(ap_image_path)
 full_a_image = imread(a_image_path)
@@ -292,29 +300,39 @@ for scale_i in range(num_scales):
     print('Precomputing static features...')
     all_a_features = get_features(a_image, set(analogy_layers + mrf_layers))
     all_ap_image_features = get_features(ap_image, set(analogy_layers + mrf_layers))
-    all_b_features = get_features(b_image, set(analogy_layers + mrf_layers))
+    all_b_features = get_features(b_image, set(analogy_layers + mrf_layers + b_content_layers))
 
     # combine the loss functions into a single scalar
     print('Building loss function...')
     loss = K.variable(0.)
 
-    for layer_name in analogy_layers:
-        layer_features = outputs_dict[layer_name]
-        a_features = K.variable(all_a_features[layer_name][0])
-        ap_image_features = K.variable(all_ap_image_features[layer_name][0])
-        b_features = K.variable(all_b_features[layer_name][0])
-        combination_features = layer_features[0, :, :, :]
-        al = analogy_loss(a_features, ap_image_features,
-            b_features, combination_features)
-        loss += (analogy_weight / len(analogy_layers)) * al
+    if analogy_weight != 0.0:
+        for layer_name in analogy_layers:
+            a_features = K.variable(all_a_features[layer_name][0])
+            ap_image_features = K.variable(all_ap_image_features[layer_name][0])
+            b_features = K.variable(all_b_features[layer_name][0])
+            layer_features = outputs_dict[layer_name]
+            combination_features = layer_features[0, :, :, :]
+            al = analogy_loss(a_features, ap_image_features,
+                b_features, combination_features)
+            loss += (analogy_weight / len(analogy_layers)) * al
 
-    for layer_name in mrf_layers:
-        layer_features = outputs_dict[layer_name]
-        ap_image_features = K.variable(all_ap_image_features[layer_name][0])
-        combination_features = layer_features[0, :, :, :]
-        sl = mrf_loss(ap_image_features, combination_features,
-            patch_size=patch_size, patch_stride=patch_stride)
-        loss += (mrf_weight / len(mrf_layers)) * sl
+    if mrf_weight != 0.0:
+        for layer_name in mrf_layers:
+            ap_image_features = K.variable(all_ap_image_features[layer_name][0])
+            layer_features = outputs_dict[layer_name]
+            combination_features = layer_features[0, :, :, :]
+            sl = mrf_loss(ap_image_features, combination_features,
+                patch_size=patch_size, patch_stride=patch_stride)
+            loss += (mrf_weight / len(mrf_layers)) * sl
+
+    if b_bp_content_weight != 0.0:
+        for layer_name in b_content_layers:
+            b_features = K.variable(all_b_features[layer_name][0])
+            bp_features = outputs_dict[layer_name]
+            cl = content_loss(bp_features, b_features)
+            loss += b_bp_content_weight / len(b_content_layers) * cl
+
 
     loss += total_variation_weight * total_variation_loss(vgg_input, img_width, img_height)
 

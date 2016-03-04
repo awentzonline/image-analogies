@@ -3,13 +3,16 @@ neural image analogies
 ![Image of arch](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/image-analogy-explanation.jpg)
 ![Image of Trump](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/trump-image-analogy.jpg)
 
-This is basically an implementation of "texture by numbers" from this "Image Analogies" paper http://www.mrl.nyu.edu/projects/image-analogies/index.html In our case, we use feature maps from VGG16. The patch matching and blending is done with a method described in "Combining Markov Random Fields and Convolutional Neural Networks for Image Synthesis" http://arxiv.org/abs/1601.04589
+This is basically an implementation of this "Image Analogies" paper http://www.mrl.nyu.edu/projects/image-analogies/index.html In our case, we use feature maps from VGG16. The patch matching and blending is done with a method described in "Combining Markov Random Fields and Convolutional Neural Networks for Image Synthesis" http://arxiv.org/abs/1601.04589  Effects similar to that paper can be achieved by
+turning off the analogy loss (or leave it on!) and turning on the B/B' content weighting
+via the `--b-content-w` parameter.
 
-The code is adapted from the Keras "neural style transfer" example.
+The initial code was adapted from the Keras "neural style transfer" example.
 
 The example arch images are from the "Image Analogies" website at http://www.mrl.nyu.edu/projects/image-analogies/tbn.html
 They have some other good examples from their own implementation which
-are worth a look.
+are worth a look. Their paper discusses the various applications of image
+analogies so you might want to take a look for inspiration.
 
 Installation
 ------------
@@ -42,8 +45,13 @@ Parameters
  * --min-scale Smallest scale to iterate
  * --mrf-w Weight for MRF loss between A' and B'
  * --analogy-w Weight for analogy loss
+ * --b-content-w Weight for content loss between B and B'
  * --tv-w Weight for total variation loss
  * --vgg-weights Path to VGG16 weights
 
 The analogy loss is the amount of influence of B -> A -> A' -> B'
 The mrf loss is the influence of B' -> A' -> B'
+
+The B/B' content loss is set to 0.0 by default. You can get effects similar
+to CNNMRF by turning this up and setting analogy weight to zero. Or leave the
+analogy loss on for some extra style guidance.
