@@ -17,7 +17,8 @@ analogies so you might want to take a look for inspiration.
 
 Installation
 ------------
-You'll want to run this on a GPU.
+You'll want to run this on a GPU. [Here are the docs](http://deeplearning.net/software/theano/tutorial/using_gpu.html) for getting
+up and running.
 
 [Install latest keras and theano](http://keras.io/#installation) (requires theano, no tensorflow atm).
 
