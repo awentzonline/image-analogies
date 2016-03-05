@@ -20,14 +20,17 @@ It is preferrable to run this script on GPU, for speed.
 '''
 
 from __future__ import print_function
+import argparse
+import os
+import time
+from itertools import product
+
+import h5py
+import numpy as np
+
 import scipy.ndimage
 from scipy.misc import imread, imresize, imsave
-import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
-import time
-import os
-import argparse
-import h5py
 
 from keras.models import Sequential
 from keras.layers.convolutional import Convolution2D, ZeroPadding2D, MaxPooling2D
@@ -58,7 +61,7 @@ parser.add_argument('--mrf-w', dest='mrf_weight', type=float,
 parser.add_argument('--b-content-w', dest='b_bp_content_weight', type=float,
                     default=0.0, help='Weight for content loss between B and B\'')
 parser.add_argument('--analogy-w', dest='analogy_weight', type=float,
-                    default=2.0, help='Weight for analogy loss.')
+                    default=9.0, help='Weight for analogy loss.')
 parser.add_argument('--tv-w', dest='tv_weight', type=float,
                     default=1.0, help='Weight for TV loss.')
 parser.add_argument('--vgg-weights', dest='vgg_weights', type=str,
@@ -127,7 +130,6 @@ def deprocess_image(x):
     return x
 
 # loss functions
-
 def make_patches(x, patch_size, patch_stride):
     from theano.tensor.nnet.neighbours import images2neibs
     x = K.expand_dims(x, 0)
@@ -139,6 +141,32 @@ def make_patches(x, patch_size, patch_stride):
     patches = K.permute_dimensions(patches, (1, 0, 2, 3))
     patches_norm = K.l2_normalize(patches, 1)
     return patches, patches_norm
+
+def reconstruct_from_patches_2d(patches, image_size):
+    '''This is from scikit-learn. I thought it was a little overkill
+    to require it just for this function.
+    '''
+    i_h, i_w = image_size[:2]
+    p_h, p_w = patches.shape[1:3]
+    img = np.zeros(image_size)
+    # compute the dimensions of the patches array
+    n_h = i_h - p_h + 1
+    n_w = i_w - p_w + 1
+    for p, (i, j) in zip(patches, product(range(n_h), range(n_w))):
+        img[i:i + p_h, j:j + p_w] += p
+
+    for i in range(i_h):
+        for j in range(i_w):
+            # divide by the amount of overlap
+            # XXX: is this the most efficient way? memory-wise yes, cpu wise?
+            img[i, j] /= float(min(i + 1, p_h, i_h - i) *
+                               min(j + 1, p_w, i_w - j))
+    return img
+
+def combine_patches(patches, out_shape):
+    patches = patches.transpose(0, 2, 3, 1)
+    recon = reconstruct_from_patches_2d(patches, out_shape)
+    return recon
 
 def find_patch_matches(a, b):
     # for each patch in A, find the best matching patch in B
@@ -158,17 +186,26 @@ def mrf_loss(source, combination, patch_size=3, patch_stride=1):
     loss = K.sum(K.square(best_source_patches - combination_patches))
     return loss
 
-# http://www.mrl.nyu.edu/projects/image-analogies/index.html
-def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1):
+def make_b_from_a_prime(a, a_prime, b, patch_size=3, patch_stride=1):
     # extract patches from feature maps
-    a_patches, a_patches_norm = make_patches(a, patch_size, patch_stride)
-    a_prime_patches, a_prime_patches_norm = make_patches(a_prime, patch_size, patch_stride)
-    b_patches, b_patches_norm = make_patches(b, patch_size, patch_stride)
-    b_prime_patches, b_prime_patches_norm = make_patches(b_prime, patch_size, patch_stride)
+    a_patches, a_patches_norm = make_patches(K.variable(a), patch_size, patch_stride)
+    a_prime_patches, a_prime_patches_norm = make_patches(K.variable(a_prime), patch_size, patch_stride)
+    b_patches, b_patches_norm = make_patches(K.variable(b), patch_size, patch_stride)
     # find best patches and calculate loss
     p = find_patch_matches(b_patches_norm, a_patches_norm)
+    #best_patches = a_prime_patches[p]
     best_patches = K.reshape(a_prime_patches[p], K.shape(a_prime_patches))
-    loss = K.sum(K.square(best_patches - b_prime_patches))
+    f = K.function([], best_patches)
+    best_patches = f([])
+    aps = a_prime.shape
+    b_analogy = combine_patches(best_patches, (aps[1], aps[2], aps[0]))
+    return b_analogy.transpose(2, 0, 1)
+
+# http://www.mrl.nyu.edu/projects/image-analogies/index.html
+def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1):
+    # since a, a', b never change we can precalculate the patch matching part
+    b_analogy = make_b_from_a_prime(a, a_prime, b, patch_size=patch_size, patch_stride=patch_stride)
+    loss = content_loss(np.expand_dims(b_analogy, 0), b_prime)
     return loss
 
 # the 3rd loss function, total variation loss,
@@ -183,6 +220,7 @@ def content_loss(a, b):
     return K.sum(K.square(a - b))
 
 
+# prepare the input images
 full_ap_image = imread(ap_image_path)
 full_a_image = imread(a_image_path)
 full_b_image = imread(b_image_path)
@@ -208,6 +246,7 @@ for scale_i in range(num_scales):
     scale_factor = (scale_i * step_scale_factor) + min_scale_factor
     img_width = int(round(full_img_width * scale_factor))
     img_height = int(round(full_img_height * scale_factor))
+    img_width, img_height = img_width, img_height
     if x is None:
         x = np.random.uniform(0, 255, (img_height, img_width, 3))
         x = x[:,:,::-1]  # to BGR
@@ -308,13 +347,12 @@ for scale_i in range(num_scales):
 
     if analogy_weight != 0.0:
         for layer_name in analogy_layers:
-            a_features = K.variable(all_a_features[layer_name][0])
-            ap_image_features = K.variable(all_ap_image_features[layer_name][0])
-            b_features = K.variable(all_b_features[layer_name][0])
+            a_features = all_a_features[layer_name][0]
+            ap_image_features = all_ap_image_features[layer_name][0]
+            b_features = all_b_features[layer_name][0]
             layer_features = outputs_dict[layer_name]
             combination_features = layer_features[0, :, :, :]
-            al = analogy_loss(a_features, ap_image_features,
-                b_features, combination_features)
+            al = analogy_loss(a_features, ap_image_features, b_features, combination_features)
             loss += (analogy_weight / len(analogy_layers)) * al
 
     if mrf_weight != 0.0:
@@ -386,7 +424,7 @@ for scale_i in range(num_scales):
     # run scipy-based optimization (L-BFGS) over the pixels of the generated image
     # so as to minimize the neural style loss
     for i in range(num_iterations_per_scale):
-        print('Start of iteration', scale_i, i)
+        print('Start of iteration %dx%d' % (scale_i, i))
         start_time = time.time()
         x, min_val, info = fmin_l_bfgs_b(evaluator.loss, x.flatten(),
                                          fprime=evaluator.grads, maxfun=20)
@@ -398,4 +436,4 @@ for scale_i in range(num_scales):
         imsave(fname, img)
         end_time = time.time()
         print('Image saved as', fname)
-        print('Iteration %d completed in %ds' % (i, end_time - start_time))
+        print('Iteration completed in %ds' % (end_time - start_time,))

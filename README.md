@@ -52,7 +52,9 @@ Parameters
  * --vgg-weights Path to VGG16 weights
 
 The analogy loss is the amount of influence of B -> A -> A' -> B'
-The mrf loss is the influence of B' -> A' -> B'
+It should be set a lot higher than the MRF loss (default is 9:1)
+
+The MRF loss is the influence of B' -> A' -> B'
 
 The B/B' content loss is set to 0.0 by default. You can get effects similar
 to CNNMRF by turning this up and setting analogy weight to zero. Or leave the
