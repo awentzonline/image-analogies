@@ -64,3 +64,6 @@ The MRF loss is the influence of B' -> A' -> B'
 The B/B' content loss is set to 0.0 by default. You can get effects similar
 to CNNMRF by turning this up and setting analogy weight to zero. Or leave the
 analogy loss on for some extra style guidance.
+
+If you'd like to only visualize the analogy target to see what's happening,
+set the MRF and content loss to zero: `--mrf-w=0 --content-w=0`
