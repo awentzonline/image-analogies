@@ -5,6 +5,7 @@ from keras import backend as K
 
 
 def make_patches(x, patch_size, patch_stride):
+    '''Break image `x` up into a bunch of patches.'''
     from theano.tensor.nnet.neighbours import images2neibs
     x = K.expand_dims(x, 0)
     patches = images2neibs(x,
@@ -15,6 +16,7 @@ def make_patches(x, patch_size, patch_stride):
     patches = K.permute_dimensions(patches, (1, 0, 2, 3))
     patches_norm = K.l2_normalize(patches, 1)
     return patches, patches_norm
+
 
 def reconstruct_from_patches_2d(patches, image_size):
     '''This is from scikit-learn. I thought it was a little overkill
@@ -37,20 +39,24 @@ def reconstruct_from_patches_2d(patches, image_size):
                                min(j + 1, p_w, i_w - j))
     return img
 
+
 def combine_patches(patches, out_shape):
+    '''Reconstruct an image from these `patches`'''
     patches = patches.transpose(0, 2, 3, 1)
     recon = reconstruct_from_patches_2d(patches, out_shape)
     return recon
 
+
 def find_patch_matches(a, b):
-    # for each patch in A, find the best matching patch in B
+    '''For each patch in A, find the best matching patch in B'''
     # we want cross-correlation here so flip the kernels
     convs = K.conv2d(a, b[:, :, ::-1, ::-1], border_mode='valid')
     argmax = K.argmax(convs, axis=1)
     return argmax
 
-# CNNMRF http://arxiv.org/pdf/1601.04589v1.pdf
+
 def mrf_loss(source, combination, patch_size=3, patch_stride=1):
+    '''CNNMRF http://arxiv.org/pdf/1601.04589v1.pdf'''
     # extract patches from feature maps
     combination_patches, combination_patches_norm = make_patches(combination, patch_size, patch_stride)
     source_patches, source_patches_norm = make_patches(source, patch_size, patch_stride)
@@ -60,7 +66,13 @@ def mrf_loss(source, combination, patch_size=3, patch_stride=1):
     loss = K.sum(K.square(best_source_patches - combination_patches))
     return loss
 
+
 def make_b_from_a_prime(a, a_prime, b, patch_size=3, patch_stride=1):
+    '''This is for precalculating the analogy_loss
+
+    Since A, A', and B never change we can just calculate it once at the start
+    and use euclidean distance instead the mrf loss.
+    '''
     # extract patches from feature maps
     a_patches, a_patches_norm = make_patches(K.variable(a), patch_size, patch_stride)
     a_prime_patches, a_prime_patches_norm = make_patches(K.variable(a_prime), patch_size, patch_stride)
@@ -75,20 +87,22 @@ def make_b_from_a_prime(a, a_prime, b, patch_size=3, patch_stride=1):
     b_analogy = combine_patches(best_patches, (aps[1], aps[2], aps[0]))
     return b_analogy.transpose(2, 0, 1)
 
-# http://www.mrl.nyu.edu/projects/image-analogies/index.html
+
 def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1):
+    '''http://www.mrl.nyu.edu/projects/image-analogies/index.html'''
     # since a, a', b never change we can precalculate the patch matching part
     b_analogy = make_b_from_a_prime(a, a_prime, b, patch_size=patch_size, patch_stride=patch_stride)
     loss = content_loss(np.expand_dims(b_analogy, 0), b_prime)
     return loss
 
-# the 3rd loss function, total variation loss,
-# designed to keep the generated image locally coherent
+
 def total_variation_loss(x, img_width, img_height):
+    '''designed to keep the generated image locally coherent'''
     assert K.ndim(x) == 4
     a = K.square(x[:, :, 1:, :img_width-1] - x[:, :, :img_height-1, :img_width-1])
     b = K.square(x[:, :, :img_height-1, 1:] - x[:, :, :img_height-1, :img_width-1])
     return K.sum(K.pow(a + b, 1.25))
+
 
 def content_loss(a, b):
     return K.sum(K.square(a - b))
