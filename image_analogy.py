@@ -156,13 +156,10 @@ for scale_i in range(num_scales):
     a_image = preprocess_image(full_a_image, img_width, img_height)
     b_image = preprocess_image(full_b_image, img_width, img_height)
 
-    # this will contain our generated image
-    vgg_input = K.placeholder((1, 3, img_height, img_width))
-
     # build the VGG16 network
     model = vgg16.get_model(img_width, img_height, weights_path=weights_path)
     first_layer = model.layers[0]
-    first_layer.input = vgg_input
+    vgg_input = first_layer.input  # this will contain our generated image
     print('Model loaded.')
 
     # get the symbolic outputs of each "key" layer (we gave them unique names).
