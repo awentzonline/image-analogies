@@ -66,6 +66,8 @@ parser.add_argument('--a-scale-mode', dest='a_scale_mode', type=str,
                     default='match', help='Method of scaling A and A\' relative to B')
 parser.add_argument('--a-scale', dest='a_scale', type=float,
                     default=1.0, help='Additional scale factor for A and A\'')
+parser.add_argument('--pool-mode', dest='pool_mode', type=str,
+                    default='avg', help='Pooling mode for VGG ("avg" or "max")')
 
 args = parser.parse_args()
 a_image_path = args.a_image_path
@@ -140,7 +142,7 @@ b_scale_ratio_width = float(full_b_image.shape[1]) / full_img_width
 b_scale_ratio_height = float(full_b_image.shape[0]) / full_img_height
 
 # build the VGG16 network
-model = vgg16.get_model(full_img_width, full_img_width, weights_path=weights_path)
+model = vgg16.get_model(full_img_width, full_img_width, weights_path=weights_path, pool_mode=args.pool_mode)
 first_layer = model.layers[0]
 vgg_input = first_layer.input
 print('Model loaded.')

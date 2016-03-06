@@ -2,7 +2,8 @@ import os
 
 import h5py
 from keras import backend as K
-from keras.layers.convolutional import Convolution2D, ZeroPadding2D, AveragePooling2D
+from keras.layers.convolutional import (
+    AveragePooling2D, Convolution2D, MaxPooling2D, ZeroPadding2D)
 from keras.models import Sequential
 
 
@@ -26,19 +27,24 @@ def img_to_vgg(x):
     return x
 
 
-def get_model(img_width, img_height, weights_path='vgg16_weights.h5'):
+def get_model(img_width, img_height, weights_path='vgg16_weights.h5', pool_mode='avg'):
+    assert pool_mode in ('avg', 'max'), '`pool_mode` must be "avg" or "max"'
+    if pool_mode == 'avg':
+        pool_class = AveragePooling2D
+    else:
+        pool_class = MaxPooling2D
     model = Sequential()
     model.add(ZeroPadding2D((1, 1), input_shape=(3, img_height, img_width)))
     model.add(Convolution2D(64, 3, 3, activation='relu', name='conv1_1'))
     model.add(ZeroPadding2D((1, 1)))
     model.add(Convolution2D(64, 3, 3, activation='relu'))
-    model.add(AveragePooling2D((2, 2), strides=(2, 2)))
+    model.add(pool_class((2, 2), strides=(2, 2)))
 
     model.add(ZeroPadding2D((1, 1)))
     model.add(Convolution2D(128, 3, 3, activation='relu', name='conv2_1'))
     model.add(ZeroPadding2D((1, 1)))
     model.add(Convolution2D(128, 3, 3, activation='relu'))
-    model.add(AveragePooling2D((2, 2), strides=(2, 2)))
+    model.add(pool_class((2, 2), strides=(2, 2)))
 
     model.add(ZeroPadding2D((1, 1)))
     model.add(Convolution2D(256, 3, 3, activation='relu', name='conv3_1'))
@@ -46,7 +52,7 @@ def get_model(img_width, img_height, weights_path='vgg16_weights.h5'):
     model.add(Convolution2D(256, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1, 1)))
     model.add(Convolution2D(256, 3, 3, activation='relu'))
-    model.add(AveragePooling2D((2, 2), strides=(2, 2)))
+    model.add(pool_class((2, 2), strides=(2, 2)))
 
     model.add(ZeroPadding2D((1, 1)))
     model.add(Convolution2D(512, 3, 3, activation='relu', name='conv4_1'))
@@ -54,7 +60,7 @@ def get_model(img_width, img_height, weights_path='vgg16_weights.h5'):
     model.add(Convolution2D(512, 3, 3, activation='relu', name='conv4_2'))
     model.add(ZeroPadding2D((1, 1)))
     model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(AveragePooling2D((2, 2), strides=(2, 2)))
+    model.add(pool_class((2, 2), strides=(2, 2)))
 
     model.add(ZeroPadding2D((1, 1)))
     model.add(Convolution2D(512, 3, 3, activation='relu', name='conv5_1'))
@@ -62,7 +68,7 @@ def get_model(img_width, img_height, weights_path='vgg16_weights.h5'):
     model.add(Convolution2D(512, 3, 3, activation='relu'))
     model.add(ZeroPadding2D((1, 1)))
     model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(AveragePooling2D((2, 2), strides=(2, 2)))
+    model.add(pool_class((2, 2), strides=(2, 2)))
 
     # load the weights of the VGG16 networks
     # (trained on ImageNet, won the ILSVRC competition in 2014)

@@ -55,6 +55,9 @@ Parameters
  * * 'ratio': apply scale imposed by width/height params on B to A
  * * 'none': leave A/A' alone
  * --a-scale Additional scale factor for A and A'
+ * --pool-mode Pooling style used by VGG
+ * * 'avg': average pooling - default
+ * * 'max': max pooling - more noisy but maybe that's what you want (original default)
 
 The analogy loss is the amount of influence of B -> A -> A' -> B'
 It should be set a lot higher than the MRF loss (default is 9:1)
