@@ -134,6 +134,12 @@ if args.out_width or args.out_height:
             full_img_width = int(round(args.out_height / float(full_img_height) * full_img_width))
             full_img_height = args.out_height
 
+# build the VGG16 network
+model = vgg16.get_model(full_img_width, full_img_width, weights_path=weights_path)
+first_layer = model.layers[0]
+vgg_input = first_layer.input  # this will contain our generated image
+print('Model loaded.')
+
 x = None
 for scale_i in range(num_scales):
     scale_factor = (scale_i * step_scale_factor) + min_scale_factor
@@ -155,12 +161,6 @@ for scale_i in range(num_scales):
     ap_image = preprocess_image(full_ap_image, img_width, img_height)
     a_image = preprocess_image(full_a_image, img_width, img_height)
     b_image = preprocess_image(full_b_image, img_width, img_height)
-
-    # build the VGG16 network
-    model = vgg16.get_model(img_width, img_height, weights_path=weights_path)
-    first_layer = model.layers[0]
-    vgg_input = first_layer.input  # this will contain our generated image
-    print('Model loaded.')
 
     # get the symbolic outputs of each "key" layer (we gave them unique names).
     outputs_dict = dict([(layer.name, layer.get_output()) for layer in model.layers])
