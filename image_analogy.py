@@ -68,6 +68,10 @@ parser.add_argument('--a-scale', dest='a_scale', type=float,
                     default=1.0, help='Additional scale factor for A and A\'')
 parser.add_argument('--pool-mode', dest='pool_mode', type=str,
                     default='max', help='Pooling mode for VGG ("avg" or "max")')
+parser.add_argument('--jitter', dest='jitter', type=float,
+                    default=0, help='Magnitude of random shift at scale x1')
+parser.add_argument('--color-jitter', dest='color_jitter', type=float,
+                    default=0, help='Magnitude of random jitter to each pixel')
 
 args = parser.parse_args()
 a_image_path = args.a_image_path
@@ -279,11 +283,23 @@ for scale_i in range(num_scales):
     for i in range(num_iterations_per_scale):
         print('Start of iteration %dx%d' % (scale_i, i))
         start_time = time.time()
+        if args.color_jitter:
+            color_jitter = (args.color_jitter * 2) * (np.random.random((3, img_height, img_width)) - 0.5)
+            x += color_jitter
+        if args.jitter:
+            jitter = args.jitter * scale_factor
+            ox, oy = np.random.randint(-jitter, jitter+1, 2)
+            x = np.roll(np.roll(x, ox, -1), oy, -2) # apply jitter shift
         x, min_val, info = fmin_l_bfgs_b(evaluator.loss, x.flatten(),
                                          fprime=evaluator.grads, maxfun=20)
         print('Current loss value:', min_val)
-        # save current generated image
+        # unjitter the image
         x = x.reshape((3, img_height, img_width))
+        if args.jitter:
+            x = np.roll(np.roll(x, -ox, -1), -oy, -2) # unshift image
+        if args.color_jitter:
+            x -= color_jitter
+        # save the image
         img = deprocess_image(np.copy(x))
         fname = result_prefix + '_at_iteration_%d_%d.png' % (scale_i, i)
         imsave(fname, img)
