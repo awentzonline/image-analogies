@@ -56,7 +56,7 @@ Parameters
  * * 'none': leave A/A' alone
  * --a-scale Additional scale factor for A and A'
  * --pool-mode Pooling style used by VGG
- * * 'avg': average pooling - default
+ * * 'avg': average pooling - generally smoother results
  * * 'max': max pooling - more noisy but maybe that's what you want (original default)
 
 The analogy loss is the amount of influence of B -> A -> A' -> B'

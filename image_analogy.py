@@ -67,7 +67,7 @@ parser.add_argument('--a-scale-mode', dest='a_scale_mode', type=str,
 parser.add_argument('--a-scale', dest='a_scale', type=float,
                     default=1.0, help='Additional scale factor for A and A\'')
 parser.add_argument('--pool-mode', dest='pool_mode', type=str,
-                    default='avg', help='Pooling mode for VGG ("avg" or "max")')
+                    default='max', help='Pooling mode for VGG ("avg" or "max")')
 
 args = parser.parse_args()
 a_image_path = args.a_image_path
