@@ -72,6 +72,9 @@ parser.add_argument('--jitter', dest='jitter', type=float,
                     default=0, help='Magnitude of random shift at scale x1')
 parser.add_argument('--color-jitter', dest='color_jitter', type=float,
                     default=0, help='Magnitude of random jitter to each pixel')
+parser.add_argument('--contrast', dest='contrast_percent', type=float,
+                    default=1.0, help='Drop the bottom x percentile and scale by the top')
+
 
 args = parser.parse_args()
 a_image_path = args.a_image_path
@@ -122,10 +125,13 @@ def preprocess_image(x, img_width, img_height):
     return img
 
 # util function to convert a tensor into a valid image
-def deprocess_image(x):
+def deprocess_image(x, contrast_percent=0.0):
     x = vgg16.img_from_vgg(x)
-    x = np.clip(x, 0, 255).astype('uint8')
-    return x
+    if contrast_percent:
+        min_x, max_x = np.percentile(x, (contrast_percent, 100 - contrast_percent))
+        x = (x - min_x) * 255.0 / (max_x - min_x)
+    x = np.clip(x, 0, 255)
+    return x.astype('uint8')
 
 # prepare the input images
 full_ap_image = imread(ap_image_path)
@@ -307,7 +313,7 @@ for scale_i in range(num_scales):
         if args.color_jitter:
             x -= color_jitter
         # save the image
-        img = deprocess_image(np.copy(x))
+        img = deprocess_image(np.copy(x), contrast_percent=args.contrast_percent)
         fname = result_prefix + '_at_iteration_%d_%d.png' % (scale_i, i)
         imsave(fname, img)
         end_time = time.time()
