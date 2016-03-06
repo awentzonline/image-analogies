@@ -21,20 +21,16 @@ It is preferrable to run this script on GPU, for speed.
 
 from __future__ import print_function
 import argparse
-import os
 import time
-from itertools import product
 
-import h5py
 import numpy as np
-
 import scipy.ndimage
 from scipy.misc import imread, imresize, imsave
 from scipy.optimize import fmin_l_bfgs_b
-
-from keras.models import Sequential
-from keras.layers.convolutional import Convolution2D, ZeroPadding2D, MaxPooling2D
 from keras import backend as K
+
+import losses
+import vgg16
 
 
 parser = argparse.ArgumentParser(description='Neural image analogies with Keras.')
@@ -100,23 +96,11 @@ def load_and_preprocess_image(image_path, img_width, img_height):
     img = preprocess_image(imread(image_path), img_width, img_height)
     return img
 
-def add_vgg_mean(x):
-    x[:, :, 0] += 103.939
-    x[:, :, 1] += 116.779
-    x[:, :, 2] += 123.68
-    return x
-
-def sub_vgg_mean(x):
-    x[:, :, 0] -= 103.939
-    x[:, :, 1] -= 116.779
-    x[:, :, 2] -= 123.68
-    return x
-
 # util function to open, resize and format pictures into appropriate tensors
 def preprocess_image(x, img_width, img_height):
     img = imresize(x, (img_height, img_width)).astype('float64')
     img = img[:,:,::-1]  # I think this uses BGR instead of RGB
-    img = sub_vgg_mean(img)
+    img = vgg16.sub_vgg_mean(img)
     img = img.transpose((2, 0, 1))
     img = np.expand_dims(img, axis=0)
     return img
@@ -124,101 +108,10 @@ def preprocess_image(x, img_width, img_height):
 # util function to convert a tensor into a valid image
 def deprocess_image(x):
     x = x.transpose((1, 2, 0))
-    x = add_vgg_mean(x)
+    x = vgg16.add_vgg_mean(x)
     x = x[:,:,::-1]  # back to RGB
     x = np.clip(x, 0, 255).astype('uint8')
     return x
-
-# loss functions
-def make_patches(x, patch_size, patch_stride):
-    from theano.tensor.nnet.neighbours import images2neibs
-    x = K.expand_dims(x, 0)
-    patches = images2neibs(x,
-        (patch_size, patch_size), (patch_stride, patch_stride),
-        mode='valid')
-    # neibs are sorted per-channel
-    patches = K.reshape(patches, (K.shape(x)[1], K.shape(patches)[0] // K.shape(x)[1], patch_size, patch_size))
-    patches = K.permute_dimensions(patches, (1, 0, 2, 3))
-    patches_norm = K.l2_normalize(patches, 1)
-    return patches, patches_norm
-
-def reconstruct_from_patches_2d(patches, image_size):
-    '''This is from scikit-learn. I thought it was a little overkill
-    to require it just for this function.
-    '''
-    i_h, i_w = image_size[:2]
-    p_h, p_w = patches.shape[1:3]
-    img = np.zeros(image_size)
-    # compute the dimensions of the patches array
-    n_h = i_h - p_h + 1
-    n_w = i_w - p_w + 1
-    for p, (i, j) in zip(patches, product(range(n_h), range(n_w))):
-        img[i:i + p_h, j:j + p_w] += p
-
-    for i in range(i_h):
-        for j in range(i_w):
-            # divide by the amount of overlap
-            # XXX: is this the most efficient way? memory-wise yes, cpu wise?
-            img[i, j] /= float(min(i + 1, p_h, i_h - i) *
-                               min(j + 1, p_w, i_w - j))
-    return img
-
-def combine_patches(patches, out_shape):
-    patches = patches.transpose(0, 2, 3, 1)
-    recon = reconstruct_from_patches_2d(patches, out_shape)
-    return recon
-
-def find_patch_matches(a, b):
-    # for each patch in A, find the best matching patch in B
-    # we want cross-correlation here so flip the kernels
-    convs = K.conv2d(a, b[:, :, ::-1, ::-1], border_mode='valid')
-    argmax = K.argmax(convs, axis=1)
-    return argmax
-
-# CNNMRF http://arxiv.org/pdf/1601.04589v1.pdf
-def mrf_loss(source, combination, patch_size=3, patch_stride=1):
-    # extract patches from feature maps
-    combination_patches, combination_patches_norm = make_patches(combination, patch_size, patch_stride)
-    source_patches, source_patches_norm = make_patches(source, patch_size, patch_stride)
-    # find best patches and calculate loss
-    patch_ids = find_patch_matches(combination_patches_norm, source_patches_norm)
-    best_source_patches = K.reshape(source_patches[patch_ids], K.shape(combination_patches))
-    loss = K.sum(K.square(best_source_patches - combination_patches))
-    return loss
-
-def make_b_from_a_prime(a, a_prime, b, patch_size=3, patch_stride=1):
-    # extract patches from feature maps
-    a_patches, a_patches_norm = make_patches(K.variable(a), patch_size, patch_stride)
-    a_prime_patches, a_prime_patches_norm = make_patches(K.variable(a_prime), patch_size, patch_stride)
-    b_patches, b_patches_norm = make_patches(K.variable(b), patch_size, patch_stride)
-    # find best patches and calculate loss
-    p = find_patch_matches(b_patches_norm, a_patches_norm)
-    #best_patches = a_prime_patches[p]
-    best_patches = K.reshape(a_prime_patches[p], K.shape(a_prime_patches))
-    f = K.function([], best_patches)
-    best_patches = f([])
-    aps = a_prime.shape
-    b_analogy = combine_patches(best_patches, (aps[1], aps[2], aps[0]))
-    return b_analogy.transpose(2, 0, 1)
-
-# http://www.mrl.nyu.edu/projects/image-analogies/index.html
-def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1):
-    # since a, a', b never change we can precalculate the patch matching part
-    b_analogy = make_b_from_a_prime(a, a_prime, b, patch_size=patch_size, patch_stride=patch_stride)
-    loss = content_loss(np.expand_dims(b_analogy, 0), b_prime)
-    return loss
-
-# the 3rd loss function, total variation loss,
-# designed to keep the generated image locally coherent
-def total_variation_loss(x, img_width, img_height):
-    assert K.ndim(x) == 4
-    a = K.square(x[:, :, 1:, :img_width-1] - x[:, :, :img_height-1, :img_width-1])
-    b = K.square(x[:, :, :img_height-1, 1:] - x[:, :, :img_height-1, :img_width-1])
-    return K.sum(K.pow(a + b, 1.25))
-
-def content_loss(a, b):
-    return K.sum(K.square(a - b))
-
 
 # prepare the input images
 full_ap_image = imread(ap_image_path)
@@ -250,7 +143,7 @@ for scale_i in range(num_scales):
     if x is None:
         x = np.random.uniform(0, 255, (img_height, img_width, 3))
         x = x[:,:,::-1]  # to BGR
-        x = sub_vgg_mean(x)
+        x = vgg16.sub_vgg_mean(x)
         x = x.transpose(2, 0, 1)
     else:  # resize the last state
         zoom_ratio = img_width / float(x.shape[-1])
@@ -267,63 +160,9 @@ for scale_i in range(num_scales):
     vgg_input = K.placeholder((1, 3, img_height, img_width))
 
     # build the VGG16 network
-    first_layer = ZeroPadding2D((1, 1), input_shape=(3, img_height, img_width))
+    model = vgg16.get_model(img_width, img_height, weights_path=weights_path)
+    first_layer = model.layers[0]
     first_layer.input = vgg_input
-
-    model = Sequential()
-    model.add(first_layer)
-    model.add(Convolution2D(64, 3, 3, activation='relu', name='conv1_1'))
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(64, 3, 3, activation='relu'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
-
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(128, 3, 3, activation='relu', name='conv2_1'))
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(128, 3, 3, activation='relu'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
-
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(256, 3, 3, activation='relu', name='conv3_1'))
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(256, 3, 3, activation='relu'))
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(256, 3, 3, activation='relu'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
-
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(512, 3, 3, activation='relu', name='conv4_1'))
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(512, 3, 3, activation='relu', name='conv4_2'))
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
-
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(512, 3, 3, activation='relu', name='conv5_1'))
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(ZeroPadding2D((1, 1)))
-    model.add(Convolution2D(512, 3, 3, activation='relu'))
-    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
-
-    # load the weights of the VGG16 networks
-    # (trained on ImageNet, won the ILSVRC competition in 2014)
-    # note: when there is a complete match between your model definition
-    # and your weight savefile, you can simply call model.load_weights(filename)
-    assert os.path.exists(weights_path), 'Model weights not found (see "weights_path" variable in script).'
-    f = h5py.File(weights_path)
-    for k in range(f.attrs['nb_layers']):
-        if k >= len(model.layers):
-            # we don't look at the last (fully-connected) layers in the savefile
-            break
-        g = f['layer_{}'.format(k)]
-        weights = [g['param_{}'.format(p)] for p in range(g.attrs['nb_params'])]
-        model.layers[k].set_weights(weights)
-        layer = model.layers[k]
-        if isinstance(layer, Convolution2D):
-            layer.W = layer.W[:, :, ::-1, ::-1]
-    f.close()
     print('Model loaded.')
 
     # get the symbolic outputs of each "key" layer (we gave them unique names).
@@ -352,7 +191,7 @@ for scale_i in range(num_scales):
             b_features = all_b_features[layer_name][0]
             layer_features = outputs_dict[layer_name]
             combination_features = layer_features[0, :, :, :]
-            al = analogy_loss(a_features, ap_image_features, b_features, combination_features)
+            al = losses.analogy_loss(a_features, ap_image_features, b_features, combination_features)
             loss += (analogy_weight / len(analogy_layers)) * al
 
     if mrf_weight != 0.0:
@@ -360,7 +199,7 @@ for scale_i in range(num_scales):
             ap_image_features = K.variable(all_ap_image_features[layer_name][0])
             layer_features = outputs_dict[layer_name]
             combination_features = layer_features[0, :, :, :]
-            sl = mrf_loss(ap_image_features, combination_features,
+            sl = losses.mrf_loss(ap_image_features, combination_features,
                 patch_size=patch_size, patch_stride=patch_stride)
             loss += (mrf_weight / len(mrf_layers)) * sl
 
@@ -368,11 +207,10 @@ for scale_i in range(num_scales):
         for layer_name in b_content_layers:
             b_features = K.variable(all_b_features[layer_name][0])
             bp_features = outputs_dict[layer_name]
-            cl = content_loss(bp_features, b_features)
+            cl = losses.content_loss(bp_features, b_features)
             loss += b_bp_content_weight / len(b_content_layers) * cl
 
-
-    loss += total_variation_weight * total_variation_loss(vgg_input, img_width, img_height)
+    loss += total_variation_weight * losses.total_variation_loss(vgg_input, img_width, img_height)
 
     # get the gradients of the generated image wrt the loss
     grads = K.gradients(loss, vgg_input)
