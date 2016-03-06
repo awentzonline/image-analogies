@@ -80,11 +80,11 @@ def make_b_from_a_prime(a, a_prime, b, patch_size=3, patch_stride=1):
     # find best patches and calculate loss
     p = find_patch_matches(b_patches_norm, a_patches_norm)
     #best_patches = a_prime_patches[p]
-    best_patches = K.reshape(a_prime_patches[p], K.shape(a_prime_patches))
+    best_patches = K.reshape(a_prime_patches[p], K.shape(b_patches))
     f = K.function([], best_patches)
     best_patches = f([])
-    aps = a_prime.shape
-    b_analogy = combine_patches(best_patches, (aps[1], aps[2], aps[0]))
+    bs = b.shape
+    b_analogy = combine_patches(best_patches, (bs[1], bs[2], bs[0]))
     return b_analogy.transpose(2, 0, 1)
 
 

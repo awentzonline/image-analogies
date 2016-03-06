@@ -62,6 +62,10 @@ parser.add_argument('--tv-w', dest='tv_weight', type=float,
                     default=1.0, help='Weight for TV loss.')
 parser.add_argument('--vgg-weights', dest='vgg_weights', type=str,
                     default='vgg16_weights.h5', help='Path to VGG16 weights.')
+parser.add_argument('--a-scale-mode', dest='a_scale_mode', type=str,
+                    default='match', help='Method of scaling A and A\' relative to B')
+parser.add_argument('--a-scale', dest='a_scale', type=float,
+                    default=1.0, help='Additional scale factor for A and A\'')
 
 args = parser.parse_args()
 a_image_path = args.a_image_path
@@ -69,6 +73,8 @@ ap_image_path = args.ap_image_path
 b_image_path = args.b_image_path
 result_prefix = args.result_prefix
 weights_path = args.vgg_weights
+a_scale_mode = args.a_scale_mode
+assert a_scale_mode in ('ratio', 'none', 'match'), 'a-scale-mode must be set to one of "ratio", "none", or "match"'
 
 # these are the weights of the different loss components
 total_variation_weight = args.tv_weight
@@ -134,15 +140,19 @@ if args.out_width or args.out_height:
             full_img_width = int(round(args.out_height / float(full_img_height) * full_img_width))
             full_img_height = args.out_height
 
+b_scale_ratio_width = float(full_b_image.shape[1]) / full_img_width
+b_scale_ratio_height = float(full_b_image.shape[0]) / full_img_height
+
 # build the VGG16 network
 model = vgg16.get_model(full_img_width, full_img_width, weights_path=weights_path)
 first_layer = model.layers[0]
-vgg_input = first_layer.input  # this will contain our generated image
+vgg_input = first_layer.input
 print('Model loaded.')
 
 x = None
 for scale_i in range(num_scales):
     scale_factor = (scale_i * step_scale_factor) + min_scale_factor
+    # scale our inputs
     img_width = int(round(full_img_width * scale_factor))
     img_height = int(round(full_img_height * scale_factor))
     img_width, img_height = img_width, img_height
@@ -155,12 +165,24 @@ for scale_i in range(num_scales):
         zoom_ratio = img_width / float(x.shape[-1])
         x = scipy.ndimage.zoom(x, (1, zoom_ratio, zoom_ratio), order=1)
         img_height, img_width = x.shape[-2:]
-    print(scale_factor, x.shape)
 
-    # get tensor representations of our images
-    ap_image = preprocess_image(full_ap_image, img_width, img_height)
-    a_image = preprocess_image(full_a_image, img_width, img_height)
+    if a_scale_mode == 'match':
+        a_img_width = img_width
+        a_img_height = img_height
+    elif a_scale_mode == 'none':
+        a_img_width = full_a_image.shape[1] * scale_factor
+        a_img_height = full_a_image.shape[0] * scale_factor
+    else:  # should just be 'ratio'
+        a_img_width = full_a_image.shape[1] * scale_factor * b_scale_ratio_width
+        a_img_height = full_a_image.shape[0] * scale_factor * b_scale_ratio_height
+    a_img_width = int(round(args.a_scale * a_img_width))
+    a_img_height = int(round(args.a_scale * a_img_height))
+
+    a_image = preprocess_image(full_a_image, a_img_width, a_img_height)
+    ap_image = preprocess_image(full_ap_image, a_img_width, a_img_height)
     b_image = preprocess_image(full_b_image, img_width, img_height)
+
+    print('Scale factor %s "A" shape %s "B" shape %s' % (scale_factor, a_image.shape, b_image.shape))
 
     # get the symbolic outputs of each "key" layer (we gave them unique names).
     outputs_dict = dict([(layer.name, layer.get_output()) for layer in model.layers])
