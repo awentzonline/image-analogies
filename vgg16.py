@@ -6,17 +6,23 @@ from keras.layers.convolutional import Convolution2D, ZeroPadding2D, MaxPooling2
 from keras.models import Sequential
 
 
-def add_vgg_mean(x):
+def img_from_vgg(x):
+    '''Decondition an image from the VGG16 model.'''
+    x = x.transpose((1, 2, 0))
     x[:, :, 0] += 103.939
     x[:, :, 1] += 116.779
     x[:, :, 2] += 123.68
+    x = x[:,:,::-1]  # to RGB
     return x
 
 
-def sub_vgg_mean(x):
+def img_to_vgg(x):
+    '''Condition an image for use with the VGG16 model.'''
+    x = x[:,:,::-1]  # to BGR
     x[:, :, 0] -= 103.939
     x[:, :, 1] -= 116.779
     x[:, :, 2] -= 123.68
+    x = x.transpose((2, 0, 1))
     return x
 
 

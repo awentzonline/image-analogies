@@ -105,17 +105,13 @@ def load_and_preprocess_image(image_path, img_width, img_height):
 # util function to open, resize and format pictures into appropriate tensors
 def preprocess_image(x, img_width, img_height):
     img = imresize(x, (img_height, img_width)).astype('float64')
-    img = img[:,:,::-1]  # I think this uses BGR instead of RGB
-    img = vgg16.sub_vgg_mean(img)
-    img = img.transpose((2, 0, 1))
+    img = vgg16.img_to_vgg(img)
     img = np.expand_dims(img, axis=0)
     return img
 
 # util function to convert a tensor into a valid image
 def deprocess_image(x):
-    x = x.transpose((1, 2, 0))
-    x = vgg16.add_vgg_mean(x)
-    x = x[:,:,::-1]  # back to RGB
+    x = vgg16.img_from_vgg(x)
     x = np.clip(x, 0, 255).astype('uint8')
     return x
 
@@ -158,9 +154,7 @@ for scale_i in range(num_scales):
     img_width, img_height = img_width, img_height
     if x is None:
         x = np.random.uniform(0, 255, (img_height, img_width, 3))
-        x = x[:,:,::-1]  # to BGR
-        x = vgg16.sub_vgg_mean(x)
-        x = x.transpose(2, 0, 1)
+        x = vgg16.img_to_vgg(x)
     else:  # resize the last state
         zoom_ratio = img_width / float(x.shape[-1])
         x = scipy.ndimage.zoom(x, (1, zoom_ratio, zoom_ratio), order=1)
