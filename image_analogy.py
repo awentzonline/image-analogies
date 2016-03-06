@@ -81,6 +81,12 @@ result_prefix = args.result_prefix
 weights_path = args.vgg_weights
 a_scale_mode = args.a_scale_mode
 assert a_scale_mode in ('ratio', 'none', 'match'), 'a-scale-mode must be set to one of "ratio", "none", or "match"'
+# hack for CPU users :(
+from keras.backend import theano_backend
+if not theano_backend._on_gpu():
+    a_scale_mode = 'match'  # prevent conv2d errors when using CPU
+    args.a_scale = 1
+    print('CPU mode detected. Forcing a-scale-mode to "match"')
 
 # these are the weights of the different loss components
 total_variation_weight = args.tv_weight
@@ -145,12 +151,6 @@ if args.out_width or args.out_height:
 b_scale_ratio_width = float(full_b_image.shape[1]) / full_img_width
 b_scale_ratio_height = float(full_b_image.shape[0]) / full_img_height
 
-# build the VGG16 network
-model = vgg16.get_model(full_img_width, full_img_width, weights_path=weights_path, pool_mode=args.pool_mode)
-first_layer = model.layers[0]
-vgg_input = first_layer.input
-print('Model loaded.')
-
 x = None
 for scale_i in range(num_scales):
     scale_factor = (scale_i * step_scale_factor) + min_scale_factor
@@ -183,6 +183,13 @@ for scale_i in range(num_scales):
     b_image = preprocess_image(full_b_image, img_width, img_height)
 
     print('Scale factor %s "A" shape %s "B" shape %s' % (scale_factor, a_image.shape, b_image.shape))
+
+    # build the VGG16 network. It seems this needs to be rebuilt at each scale
+    # or CPU users get an error from conv2d :(
+    model = vgg16.get_model(img_width, img_height, weights_path=weights_path, pool_mode=args.pool_mode)
+    first_layer = model.layers[0]
+    vgg_input = first_layer.input
+    print('Model loaded.')
 
     # get the symbolic outputs of each "key" layer (we gave them unique names).
     outputs_dict = dict([(layer.name, layer.get_output()) for layer in model.layers])
