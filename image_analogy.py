@@ -76,7 +76,17 @@ parser.add_argument('--contrast', dest='contrast_percent', type=float,
                     default=0.02, help='Drop the bottom x percentile and scale by the top (100 - x)th percentile')
 parser.add_argument('--output-full', dest='output_full_size', action='store_true',
                     help='Output all intermediate images at full size regardless of actual scale.')
-
+parser.add_argument('--analogy-layers', dest='analogy_layers', type=str,
+                    default='conv3_1,conv4_1',
+                    help='Comma-separated list of layer names to be used for the analogy loss')
+parser.add_argument('--mrf-layers', dest='mrf_layers', type=str,
+                    default='conv3_1,conv4_1',
+                    help='Comma-separated list of layer names to be used for the MRF loss')
+parser.add_argument('--content-layers', dest='content_layers', type=str,
+                    default='conv3_1,conv4_1',
+                    help='Comma-separated list of layer names to be used for the content loss')
+parser.add_argument('--patch-size', dest='patch_size', type=int,
+                    default=3, help='Patch size used for matching.')
 
 args = parser.parse_args()
 a_image_path = args.a_image_path
@@ -101,9 +111,9 @@ mrf_weight = args.mrf_weight
 patch_size = 3
 patch_stride = 1
 
-analogy_layers = ['conv3_1', 'conv4_1']
-mrf_layers = ['conv3_1', 'conv4_1']
-b_content_layers = ['conv3_1', 'conv4_1']
+analogy_layers = args.analogy_layers.split(',')
+mrf_layers = args.mrf_layers.split(',')
+b_content_layers = args.content_layers.split(',')
 
 num_iterations_per_scale = args.num_iterations
 num_scales = args.num_scales
