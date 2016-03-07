@@ -74,6 +74,8 @@ parser.add_argument('--color-jitter', dest='color_jitter', type=float,
                     default=0, help='Magnitude of random jitter to each pixel')
 parser.add_argument('--contrast', dest='contrast_percent', type=float,
                     default=1.0, help='Drop the bottom x percentile and scale by the top (100 - x)th percentile')
+parser.add_argument('--output-full', dest='output_full_size', action='store_true',
+                    help='Output all intermediate images at full size regardless of actual scale.')
 
 
 args = parser.parse_args()
@@ -125,12 +127,14 @@ def preprocess_image(x, img_width, img_height):
     return img
 
 # util function to convert a tensor into a valid image
-def deprocess_image(x, contrast_percent=0.0):
+def deprocess_image(x, contrast_percent=0.0, resize=None):
     x = vgg16.img_from_vgg(x)
     if contrast_percent:
         min_x, max_x = np.percentile(x, (contrast_percent, 100 - contrast_percent))
         x = (x - min_x) * 255.0 / (max_x - min_x)
     x = np.clip(x, 0, 255)
+    if resize:
+        x = imresize(x, resize, interp='bicubic')
     return x.astype('uint8')
 
 # prepare the input images
@@ -313,7 +317,11 @@ for scale_i in range(num_scales):
         if args.color_jitter:
             x -= color_jitter
         # save the image
-        img = deprocess_image(np.copy(x), contrast_percent=args.contrast_percent)
+        if args.output_full_size:
+            out_resize_shape = (full_img_height, full_img_width)
+        else:
+            out_resize_shape = None
+        img = deprocess_image(np.copy(x), contrast_percent=args.contrast_percent,resize=out_resize_shape)
         fname = result_prefix + '_at_iteration_%d_%d.png' % (scale_i, i)
         imsave(fname, img)
         end_time = time.time()
