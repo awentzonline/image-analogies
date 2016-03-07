@@ -73,7 +73,7 @@ parser.add_argument('--jitter', dest='jitter', type=float,
 parser.add_argument('--color-jitter', dest='color_jitter', type=float,
                     default=0, help='Magnitude of random jitter to each pixel')
 parser.add_argument('--contrast', dest='contrast_percent', type=float,
-                    default=1.0, help='Drop the bottom x percentile and scale by the top')
+                    default=1.0, help='Drop the bottom x percentile and scale by the top (100 - x)th percentile')
 
 
 args = parser.parse_args()
