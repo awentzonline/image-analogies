@@ -59,7 +59,7 @@ Parameters
  * * 'avg': average pooling - generally smoother results
  * * 'max': max pooling - more noisy but maybe that's what you want (original default)
  * --contrast adjust the contrast of the output by removing the bottom x percentile
-    and scaling by the (100 - x)th percentile. Defaults to 1.0
+    and scaling by the (100 - x)th percentile. Defaults to 0.02
  * --output-full Output all intermediate images at full size regardless of actual scale
 
 The analogy loss is the amount of influence of B -> A -> A' -> B'

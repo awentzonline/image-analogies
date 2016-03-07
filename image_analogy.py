@@ -73,7 +73,7 @@ parser.add_argument('--jitter', dest='jitter', type=float,
 parser.add_argument('--color-jitter', dest='color_jitter', type=float,
                     default=0, help='Magnitude of random jitter to each pixel')
 parser.add_argument('--contrast', dest='contrast_percent', type=float,
-                    default=1.0, help='Drop the bottom x percentile and scale by the top (100 - x)th percentile')
+                    default=0.02, help='Drop the bottom x percentile and scale by the top (100 - x)th percentile')
 parser.add_argument('--output-full', dest='output_full_size', action='store_true',
                     help='Output all intermediate images at full size regardless of actual scale.')
 
