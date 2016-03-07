@@ -119,7 +119,7 @@ def load_and_preprocess_image(image_path, img_width, img_height):
 
 # util function to open, resize and format pictures into appropriate tensors
 def preprocess_image(x, img_width, img_height):
-    img = imresize(x, (img_height, img_width)).astype('float64')
+    img = imresize(x, (img_height, img_width), interp='bicubic').astype('float64')
     img = vgg16.img_to_vgg(img)
     img = np.expand_dims(img, axis=0)
     return img
