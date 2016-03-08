@@ -108,7 +108,7 @@ total_variation_weight = args.tv_weight
 analogy_weight = args.analogy_weight
 b_bp_content_weight = args.b_bp_content_weight
 mrf_weight = args.mrf_weight
-patch_size = 3
+patch_size = args.patch_size
 patch_stride = 1
 
 analogy_layers = args.analogy_layers.split(',')
