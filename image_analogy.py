@@ -87,8 +87,8 @@ parser.add_argument('--content-layers', dest='content_layers', type=str,
                     help='Comma-separated list of layer names to be used for the content loss')
 parser.add_argument('--patch-size', dest='patch_size', type=int,
                     default=3, help='Patch size used for matching.')
-parser.add_argument('--flatten-analogy', dest='flatten_analogy', action="store_true",
-                    help='Flatten analogy patches (faster/less memory but less accurate)')
+parser.add_argument('--use-full-analogy', dest='use_full_analogy', action="store_true",
+                    help='Use the full set of analogy patches (slower/more memory but maybe more accurate)')
 
 
 args = parser.parse_args()
@@ -241,7 +241,7 @@ for scale_i in range(num_scales):
             layer_features = outputs_dict[layer_name]
             combination_features = layer_features[0, :, :, :]
             al = losses.analogy_loss(a_features, ap_image_features,
-                b_features, combination_features, flatten_patches=args.flatten_analogy)
+                b_features, combination_features, use_full_analogy=args.use_full_analogy)
             loss += (analogy_weight / len(analogy_layers)) * al
 
     if mrf_weight != 0.0:

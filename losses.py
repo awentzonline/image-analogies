@@ -85,17 +85,17 @@ def find_analogy_patches(a, a_prime, b, patch_size=3, patch_stride=1):
     return best_patches
 
 
-def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1, flatten_patches=False):
+def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1, use_full_analogy=False):
     '''http://www.mrl.nyu.edu/projects/image-analogies/index.html'''
     best_a_prime_patches = find_analogy_patches(a, a_prime, b, patch_size=patch_size, patch_stride=patch_stride)
-    if flatten_patches:  # combine all the patches into a single image
+    if use_full_analogy:  # combine all the patches into a single image
+        b_prime_patches, _ = make_patches(b_prime, patch_size, patch_stride)
+        loss = content_loss(best_a_prime_patches, b_prime_patches) / patch_size ** 2
+    else:
         print('Flattening analogy patches...')
         bs = b.shape
         b_analogy = combine_patches(best_a_prime_patches, (bs[1], bs[2], bs[0]))
         loss = content_loss(np.expand_dims(b_analogy, 0), b_prime)
-    else:
-        b_prime_patches, _ = make_patches(b_prime, patch_size, patch_stride)
-        loss = content_loss(best_a_prime_patches, b_prime_patches) / patch_size ** 2
     return loss
 
 
