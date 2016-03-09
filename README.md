@@ -44,6 +44,8 @@ e.g.:
 Currently, A and A' must be the same size, the same holds for B and B'.
 Output size is the same as Image B, unless specified otherwise.
 
+It's too slow
+-------------
 If you don't have a beefy GPU or just want to crank out a styled image, you have a few options to play with. They all trade detail for speed/memory.
  * set `--patch-size=1` or 2 to consider smaller feature patches (default is 3)
  * set `--mrf-w=0` to skip optimization of local coherence
@@ -51,7 +53,6 @@ If you don't have a beefy GPU or just want to crank out a styled image, you have
 
 Parameters
 ----------
-
  * --width Sets image output max width
  * --height Sets image output max height
  * --scales Run at N different scales
