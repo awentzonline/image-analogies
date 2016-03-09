@@ -39,6 +39,10 @@ Output size is the same as Image B, unless specified otherwise.
 
 If you don't have a beefy GPU or just want to crank out a styled image, you can
 try setting `--mrf-w=0` which will run quickly but will generally lack rich detail.
+You can also try setting `--mrf-layers=conv4_1` and/or `--analogy-layers=conv4_1`
+(or other layers) which will consider half as many feature layers, speeding things
+up at the cost of accuracy.
+
 
 Parameters
 ----------
@@ -71,14 +75,16 @@ Parameters
  * --use-full-analogy match on all of the analogy patches, instead of combining
     them into one image (slower/more memory but maybe more accurate)
 
-The analogy loss is the amount of influence of B -> A -> A' -> B'
-It should be set a lot higher than the MRF loss (default is 9:1)
+The analogy loss is the amount of influence of B -> A -> A' -> B'. It's a
+structure-preserving mapping of Image B into A' via A.
 
-The MRF loss is the influence of B' -> A' -> B'
+The MRF loss (or "local coherence") is the influence of B' -> A' -> B'. In the
+parlance of style transfer, this is the style loss which gives texture to the image.
 
 The B/B' content loss is set to 0.0 by default. You can get effects similar
 to CNNMRF by turning this up and setting analogy weight to zero. Or leave the
 analogy loss on for some extra style guidance.
 
 If you'd like to only visualize the analogy target to see what's happening,
-set the MRF and content loss to zero: `--mrf-w=0 --content-w=0`
+set the MRF and content loss to zero: `--mrf-w=0 --content-w=0` This is also
+much faster as MRF loss is the slowest part of the algorithm.
