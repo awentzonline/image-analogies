@@ -14,7 +14,7 @@ def make_patches(x, patch_size, patch_stride):
     # neibs are sorted per-channel
     patches = K.reshape(patches, (K.shape(x)[1], K.shape(patches)[0] // K.shape(x)[1], patch_size, patch_size))
     patches = K.permute_dimensions(patches, (1, 0, 2, 3))
-    patches_norm = K.l2_normalize(patches, 1)
+    patches_norm = K.sqrt(K.sum(K.square(patches), axis=(1,2,3), keepdims=True))
     return patches, patches_norm
 
 
@@ -47,11 +47,11 @@ def combine_patches(patches, out_shape):
     return recon.transpose(2, 0, 1)
 
 
-def find_patch_matches(a, b):
+def find_patch_matches(a, a_norm, b):
     '''For each patch in A, find the best matching patch in B'''
     # we want cross-correlation here so flip the kernels
     convs = K.conv2d(a, b[:, :, ::-1, ::-1], border_mode='valid')
-    argmax = K.argmax(convs, axis=1)
+    argmax = K.argmax(convs / a_norm, axis=1)
     return argmax
 
 
@@ -61,7 +61,7 @@ def mrf_loss(source, combination, patch_size=3, patch_stride=1):
     combination_patches, combination_patches_norm = make_patches(combination, patch_size, patch_stride)
     source_patches, source_patches_norm = make_patches(source, patch_size, patch_stride)
     # find best patches and calculate loss
-    patch_ids = find_patch_matches(combination_patches_norm, source_patches_norm)
+    patch_ids = find_patch_matches(combination_patches, combination_patches_norm, source_patches / source_patches_norm)
     best_source_patches = K.reshape(source_patches[patch_ids], K.shape(combination_patches))
     loss = K.sum(K.square(best_source_patches - combination_patches)) / patch_size ** 2
     return loss
@@ -77,7 +77,7 @@ def find_analogy_patches(a, a_prime, b, patch_size=3, patch_stride=1):
     a_prime_patches, a_prime_patches_norm = make_patches(K.variable(a_prime), patch_size, patch_stride)
     b_patches, b_patches_norm = make_patches(K.variable(b), patch_size, patch_stride)
     # find best patches and calculate loss
-    p = find_patch_matches(b_patches_norm, a_patches_norm)
+    p = find_patch_matches(b_patches, b_patches_norm, a_patches / a_patches_norm)
     #best_patches = a_prime_patches[p]
     best_patches = K.reshape(a_prime_patches[p], K.shape(b_patches))
     f = K.function([], best_patches)
