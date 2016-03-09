@@ -29,6 +29,7 @@ from scipy.misc import imread, imresize, imsave
 from scipy.optimize import fmin_l_bfgs_b
 from keras import backend as K
 
+import img_utils
 import losses
 import vgg16
 
@@ -127,33 +128,11 @@ else:
     step_scale_factor = 0.0
     min_scale_factor = 1.0
 
-# util function to open, resize and format pictures into appropriate tensors
-def load_and_preprocess_image(image_path, img_width, img_height):
-    img = preprocess_image(imread(image_path), img_width, img_height)
-    return img
-
-# util function to open, resize and format pictures into appropriate tensors
-def preprocess_image(x, img_width, img_height):
-    img = imresize(x, (img_height, img_width), interp='bicubic').astype('float64')
-    img = vgg16.img_to_vgg(img)
-    img = np.expand_dims(img, axis=0)
-    return img
-
-# util function to convert a tensor into a valid image
-def deprocess_image(x, contrast_percent=0.0, resize=None):
-    x = vgg16.img_from_vgg(x)
-    if contrast_percent:
-        min_x, max_x = np.percentile(x, (contrast_percent, 100 - contrast_percent))
-        x = (x - min_x) * 255.0 / (max_x - min_x)
-    x = np.clip(x, 0, 255)
-    if resize:
-        x = imresize(x, resize, interp='bicubic')
-    return x.astype('uint8')
 
 # prepare the input images
-full_ap_image = imread(ap_image_path, mode='RGB')
-full_a_image = imread(a_image_path, mode='RGB')
-full_b_image = imread(b_image_path, mode='RGB')
+full_ap_image = img_utils.load_image(ap_image_path)
+full_a_image = img_utils.load_image(a_image_path)
+full_b_image = img_utils.load_image(b_image_path)
 
 # dimensions of the generated picture.
 # default to the size of the new mask image
@@ -201,9 +180,9 @@ for scale_i in range(num_scales):
     a_img_width = int(round(args.a_scale * a_img_width))
     a_img_height = int(round(args.a_scale * a_img_height))
 
-    a_image = preprocess_image(full_a_image, a_img_width, a_img_height)
-    ap_image = preprocess_image(full_ap_image, a_img_width, a_img_height)
-    b_image = preprocess_image(full_b_image, img_width, img_height)
+    a_image = img_utils.preprocess_image(full_a_image, a_img_width, a_img_height)
+    ap_image = img_utils.preprocess_image(full_ap_image, a_img_width, a_img_height)
+    b_image = img_utils.preprocess_image(full_b_image, img_width, img_height)
 
     print('Scale factor %s "A" shape %s "B" shape %s' % (scale_factor, a_image.shape, b_image.shape))
 
@@ -335,7 +314,7 @@ for scale_i in range(num_scales):
             out_resize_shape = (full_img_height, full_img_width)
         else:
             out_resize_shape = None
-        img = deprocess_image(np.copy(x), contrast_percent=args.contrast_percent,resize=out_resize_shape)
+        img = img_utils.deprocess_image(np.copy(x), contrast_percent=args.contrast_percent,resize=out_resize_shape)
         fname = result_prefix + '_at_iteration_%d_%d.png' % (scale_i, i)
         imsave(fname, img)
         end_time = time.time()
