@@ -34,8 +34,8 @@ e.g.:
 
 `python image_analogy.py images/arch-mask.jpg images/arch.jpg images/arch-newmask.jpg out/arch`
 
-Currently, the images are all assumed to be the same size. Output size is the same
-as the new mask image, unless specified otherwise.
+Currently, A and A' must be the same size, the same holds for B and B'.
+Output size is the same as Image B, unless specified otherwise.
 
 Parameters
 ----------
