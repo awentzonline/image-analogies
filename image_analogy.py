@@ -220,7 +220,7 @@ for scale_i in range(num_scales):
             layer_features = outputs_dict[layer_name]
             combination_features = layer_features[0, :, :, :]
             al = losses.analogy_loss(a_features, ap_image_features,
-                b_features, combination_features, use_full_analogy=args.use_full_analogy)
+                b_features, combination_features, use_full_analogy=args.use_full_analogy, patch_size=patch_size)
             loss += (analogy_weight / len(analogy_layers)) * al
 
     if mrf_weight != 0.0:
