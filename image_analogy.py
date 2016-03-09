@@ -151,9 +151,9 @@ def deprocess_image(x, contrast_percent=0.0, resize=None):
     return x.astype('uint8')
 
 # prepare the input images
-full_ap_image = imread(ap_image_path)
-full_a_image = imread(a_image_path)
-full_b_image = imread(b_image_path)
+full_ap_image = imread(ap_image_path, mode='RGB')
+full_a_image = imread(a_image_path, mode='RGB')
+full_b_image = imread(b_image_path, mode='RGB')
 
 # dimensions of the generated picture.
 # default to the size of the new mask image
