@@ -37,6 +37,9 @@ e.g.:
 Currently, A and A' must be the same size, the same holds for B and B'.
 Output size is the same as Image B, unless specified otherwise.
 
+If you don't have a beefy GPU or just want to crank out a styled image, you can
+try setting `--mrf-w=0` which will run quickly but will generally lack rich detail.
+
 Parameters
 ----------
 
