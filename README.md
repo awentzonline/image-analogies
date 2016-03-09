@@ -17,12 +17,19 @@ analogies so you might want to take a look for inspiration.
 
 Installation
 ------------
-You'll want to run this on a GPU. [Here are the docs](http://deeplearning.net/software/theano/tutorial/using_gpu.html) for getting
-up and running.
+You'll want to run this on a GPU. http://deeplearning.net/software/theano/tutorial/using_gpu.html
 
-[Install latest keras and theano](http://keras.io/#installation) (requires theano, no tensorflow atm).
+To install via [virtualenv](https://virtualenv.readthedocs.org/en/latest/installation.html) run the following commands.
 
-Before running this script, download the weights for the VGG16 model at:
+```
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+If you have trouble with the above method, follow these directions to [Install latest keras and theano](http://keras.io/#installation) (requires theano, no tensorflow atm).
+
+**Before running this script**, download the weights for the VGG16 model at:
 https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
 (source: https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3)
 and make sure the variable `weights_path` in this script matches the location of the file or use the `--vgg-weights` parameter

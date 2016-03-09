@@ -3,3 +3,4 @@
 *.swp
 out/*
 vgg16_weights.h5
+venv
