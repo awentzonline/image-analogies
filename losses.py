@@ -44,7 +44,7 @@ def combine_patches(patches, out_shape):
     '''Reconstruct an image from these `patches`'''
     patches = patches.transpose(0, 2, 3, 1)
     recon = reconstruct_from_patches_2d(patches, out_shape)
-    return recon
+    return recon.transpose(2, 0, 1)
 
 
 def find_patch_matches(a, b):
@@ -63,15 +63,14 @@ def mrf_loss(source, combination, patch_size=3, patch_stride=1):
     # find best patches and calculate loss
     patch_ids = find_patch_matches(combination_patches_norm, source_patches_norm)
     best_source_patches = K.reshape(source_patches[patch_ids], K.shape(combination_patches))
-    loss = K.sum(K.square(best_source_patches - combination_patches))
+    loss = K.sum(K.square(best_source_patches - combination_patches)) / patch_size ** 2
     return loss
 
 
-def make_b_from_a_prime(a, a_prime, b, patch_size=3, patch_stride=1):
+def find_analogy_patches(a, a_prime, b, patch_size=3, patch_stride=1):
     '''This is for precalculating the analogy_loss
 
-    Since A, A', and B never change we can just calculate it once at the start
-    and use euclidean distance instead the mrf loss.
+    Since A, A', and B never change we only need to calculate the patch matches once.
     '''
     # extract patches from feature maps
     a_patches, a_patches_norm = make_patches(K.variable(a), patch_size, patch_stride)
@@ -83,16 +82,20 @@ def make_b_from_a_prime(a, a_prime, b, patch_size=3, patch_stride=1):
     best_patches = K.reshape(a_prime_patches[p], K.shape(b_patches))
     f = K.function([], best_patches)
     best_patches = f([])
-    bs = b.shape
-    b_analogy = combine_patches(best_patches, (bs[1], bs[2], bs[0]))
-    return b_analogy.transpose(2, 0, 1)
+    return best_patches
 
 
-def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1):
+def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1, flatten_patches=False):
     '''http://www.mrl.nyu.edu/projects/image-analogies/index.html'''
-    # since a, a', b never change we can precalculate the patch matching part
-    b_analogy = make_b_from_a_prime(a, a_prime, b, patch_size=patch_size, patch_stride=patch_stride)
-    loss = content_loss(np.expand_dims(b_analogy, 0), b_prime)
+    best_a_prime_patches = find_analogy_patches(a, a_prime, b, patch_size=patch_size, patch_stride=patch_stride)
+    if flatten_patches:  # combine all the patches into a single image
+        print('Flattening analogy patches...')
+        bs = b.shape
+        b_analogy = combine_patches(best_a_prime_patches, (bs[1], bs[2], bs[0]))
+        loss = content_loss(np.expand_dims(b_analogy, 0), b_prime)
+    else:
+        b_prime_patches, _ = make_patches(b_prime, patch_size, patch_stride)
+        loss = content_loss(best_a_prime_patches, b_prime_patches) / patch_size ** 2
     return loss
 
 

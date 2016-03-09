@@ -65,6 +65,9 @@ Parameters
  * --mrf-layers Comma-separated list of layer names to be used for the MRF loss (default: "conv3_1,conv_4_1")
  * --content-layers Comma-separated list of layer names to be used for the content loss (default: "conv3_1,conv_4_1")
  * --patch-size Patch size used for matching (default: 3)
+ * --flatten-analogy recombine the best analogy patches into a single image
+  (faster/less memory but less accurate)
+
 The analogy loss is the amount of influence of B -> A -> A' -> B'
 It should be set a lot higher than the MRF loss (default is 9:1)
 

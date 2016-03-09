@@ -57,7 +57,7 @@ parser.add_argument('--mrf-w', dest='mrf_weight', type=float,
 parser.add_argument('--b-content-w', dest='b_bp_content_weight', type=float,
                     default=0.0, help='Weight for content loss between B and B\'')
 parser.add_argument('--analogy-w', dest='analogy_weight', type=float,
-                    default=9.0, help='Weight for analogy loss.')
+                    default=1.0, help='Weight for analogy loss.')
 parser.add_argument('--tv-w', dest='tv_weight', type=float,
                     default=1.0, help='Weight for TV loss.')
 parser.add_argument('--vgg-weights', dest='vgg_weights', type=str,
@@ -87,6 +87,9 @@ parser.add_argument('--content-layers', dest='content_layers', type=str,
                     help='Comma-separated list of layer names to be used for the content loss')
 parser.add_argument('--patch-size', dest='patch_size', type=int,
                     default=3, help='Patch size used for matching.')
+parser.add_argument('--flatten-analogy', dest='flatten_analogy', action="store_true",
+                    help='Flatten analogy patches (faster/less memory but less accurate)')
+
 
 args = parser.parse_args()
 a_image_path = args.a_image_path
@@ -237,7 +240,8 @@ for scale_i in range(num_scales):
             b_features = all_b_features[layer_name][0]
             layer_features = outputs_dict[layer_name]
             combination_features = layer_features[0, :, :, :]
-            al = losses.analogy_loss(a_features, ap_image_features, b_features, combination_features)
+            al = losses.analogy_loss(a_features, ap_image_features,
+                b_features, combination_features, flatten_patches=args.flatten_analogy)
             loss += (analogy_weight / len(analogy_layers)) * al
 
     if mrf_weight != 0.0:
