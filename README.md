@@ -44,12 +44,10 @@ e.g.:
 Currently, A and A' must be the same size, the same holds for B and B'.
 Output size is the same as Image B, unless specified otherwise.
 
-If you don't have a beefy GPU or just want to crank out a styled image, you can
-try setting `--mrf-w=0` which will run quickly but will generally lack rich detail.
-You can also try setting `--mrf-layers=conv4_1` and/or `--analogy-layers=conv4_1`
-(or other layers) which will consider half as many feature layers, speeding things
-up at the cost of accuracy.
-
+If you don't have a beefy GPU or just want to crank out a styled image, you have a few options to play with. They all trade detail for speed/memory.
+ * set `--patch-size=1` or 2 to consider smaller feature patches (default is 3)
+ * set `--mrf-w=0` to skip optimization of local coherence
+ * use fewer feature layers by setting `--mrf-layers=conv4_1` and/or `--analogy-layers=conv4_1` (or other layers) which will consider half as many feature layers.
 
 Parameters
 ----------
