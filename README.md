@@ -95,3 +95,10 @@ analogy loss on for some extra style guidance.
 If you'd like to only visualize the analogy target to see what's happening,
 set the MRF and content loss to zero: `--mrf-w=0 --content-w=0` This is also
 much faster as MRF loss is the slowest part of the algorithm.
+
+License
+-------
+The code for this implementation is provided under the MIT license.
+
+I'm not familiar with whatever legal encumbrances may exist with the
+algorithms themselves or using the pre-trained VGG16 model.
