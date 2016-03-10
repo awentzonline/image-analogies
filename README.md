@@ -50,6 +50,7 @@ If you don't have a beefy GPU or just want to crank out a styled image, you have
  * set `--patch-size=1` or 2 to consider smaller feature patches (default is 3)
  * set `--mrf-w=0` to skip optimization of local coherence
  * use fewer feature layers by setting `--mrf-layers=conv4_1` and/or `--analogy-layers=conv4_1` (or other layers) which will consider half as many feature layers.
+ * enable Theano openmp threading by using env variables `THEANO_FLAGS='openmp=1,openmp_elemwise_minsize=<min_tensor_size>'` `OMP_NUM_THREADS=<cpu_num>`. You can read more about multi-core support [here](http://deeplearning.net/software/theano/tutorial/multi_cores.html).
 
 Parameters
 ----------
