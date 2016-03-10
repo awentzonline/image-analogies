@@ -100,5 +100,6 @@ License
 -------
 The code for this implementation is provided under the MIT license.
 
-I'm not familiar with whatever legal encumbrances may exist with the
-algorithms themselves or using the pre-trained VGG16 model.
+The suggested VGG16 weights are originally from [here](https://gist.github.com/ksimonyan/211839e770f7b538e2d8) and are
+licensed http://creativecommons.org/licenses/by-nc/4.0/ Open a ticket if you
+have a suggestion for a more free-as-in-free-speech license.
