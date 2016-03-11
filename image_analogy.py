@@ -198,15 +198,18 @@ for scale_i in range(num_scales):
 
     def get_features(x, layers):
         features = {}
-        for layer_name in layers:
-            f = K.function([vgg_input], outputs_dict[layer_name])
-            features[layer_name] = f([x])
+        f = K.function([vgg_input], [outputs_dict[layer_name] for layer_name in layers])
+        feature_outputs = f([x])
+        features = dict(zip(layers, feature_outputs))
         return features
 
     print('Precomputing static features...')
+    start_t = time.time()
     all_a_features = get_features(a_image, set(analogy_layers + mrf_layers))
     all_ap_image_features = get_features(ap_image, set(analogy_layers + mrf_layers))
     all_b_features = get_features(b_image, set(analogy_layers + mrf_layers + b_content_layers))
+    end_t = time.time()
+    print('precomputed in {} seconds'.format(end_t - start_t))
 
     # combine the loss functions into a single scalar
     print('Building loss function...')
