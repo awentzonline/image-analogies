@@ -3,7 +3,7 @@ from distutils.core import setup
 
 
 setup(
-    name='Neural Image Analogies',
+    name='neural-image-analogies',
     version='0.0.1',
     description='Generate image analogies with a deep neural network.',
     author='Adam Wentz',
