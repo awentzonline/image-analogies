@@ -81,8 +81,8 @@ Parameters
  * --tv-w Weight for total variation loss
  * --vgg-weights Path to VGG16 weights
  * --a-scale-mode Method of scaling A and A' relative to B
- * * 'match': force A to be the same size as B regardless of aspect ratio (current default for backwards compatibility)
- * * 'ratio': apply scale imposed by width/height params on B to A
+ * * 'match': force A to be the same size as B regardless of aspect ratio (former default)
+ * * 'ratio': apply scale imposed by width/height params on B to A (current default)
  * * 'none': leave A/A' alone
  * --a-scale Additional scale factor for A and A'
  * --pool-mode Pooling style used by VGG
