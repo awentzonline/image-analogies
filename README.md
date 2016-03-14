@@ -1,8 +1,8 @@
 neural image analogies
 ----------------------
-![Image of arch](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/image-analogy-explanation.jpg)
-![Image of Trump](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/trump-image-analogy.jpg)
-![Image of Sugar Steve](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/sugarskull-analogy.jpg)
+![Image of arch](https://raw.githubusercontent.com/awentzonline/image-analogies/master/examples/images/image-analogy-explanation.jpg)
+![Image of Trump](https://raw.githubusercontent.com/awentzonline/image-analogies/master/examples/images/trump-image-analogy.jpg)
+![Image of Sugar Steve](https://raw.githubusercontent.com/awentzonline/image-analogies/master/examples/sugarskull-analogy.jpg)
 
 This is basically an implementation of this ["Image Analogies" paper]( http://www.mrl.nyu.edu/projects/image-analogies/index.html), In our case, we use feature maps from VGG16. The patch matching and blending is inspired by the method described in ["Combining Markov Random Fields and Convolutional Neural Networks for Image Synthesis"](http://arxiv.org/abs/1601.04589). Effects similar to that paper can be achieved by turning off the analogy loss (or leave it on!) `--analogy-w=0` and turning on the B/B' content weighting via the `--b-content-w` parameter. Also, instead of using brute-force patch matching
 we use the [PatchMatch algorithm](http://gfx.cs.princeton.edu/gfx/pubs/Barnes_2009_PAR/index.php)
@@ -25,12 +25,12 @@ To install via [virtualenv](https://virtualenv.readthedocs.org/en/latest/install
 ```
 virtualenv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install .
 ```
 
 If you have trouble with the above method, follow these directions to [Install latest keras and theano or TensorFlow](http://keras.io/#installation)
 
-The script `make_image_analogy.py` will be on your path in the venv.
+The script `make_image_analogy.py` should now be on your path.
 
 **Before running this script**, download the weights for the VGG16 model at:
 https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
@@ -66,6 +66,7 @@ you have a few options to play with. They all trade detail for speed/memory.
  * enable Theano openmp threading by using env variables `THEANO_FLAGS='openmp=1,openmp_elemwise_minsize=<min_tensor_size>'` `OMP_NUM_THREADS=<cpu_num>`. You can
  read more about multi-core support [here](http://deeplearning.net/software/theano/tutorial/multi_cores.html).
  * Use TensorFlow which seems to be a little more performant on CPUs
+ * ensure you're not using `--model=brute` which needs a powerful GPU
 
 Parameters
 ----------
