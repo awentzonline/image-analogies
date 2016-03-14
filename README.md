@@ -1,8 +1,8 @@
 neural image analogies
 ----------------------
 ![Image of arch](https://raw.githubusercontent.com/awentzonline/image-analogies/master/examples/images/image-analogy-explanation.jpg)
-![Image of Sugar Steve](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/sugarskull-analogy.jpg)
-![Image of season transfer](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/season-xfer.jpg)![Image of Trump](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/trump-image-analogy.jpg)
+![Image of Sugar Steve](https://raw.githubusercontent.com/awentzonline/image-analogies/master/examples/images/sugarskull-analogy.jpg)
+![Image of season transfer](https://raw.githubusercontent.com/awentzonline/image-analogies/master/examples/images/season-xfer.jpg)![Image of Trump](https://raw.githubusercontent.com/awentzonline/image-analogies/master/examples/images/trump-image-analogy.jpg)
 
 
 This is basically an implementation of this ["Image Analogies" paper]( http://www.mrl.nyu.edu/projects/image-analogies/index.html), In our case, we use feature maps from VGG16. The patch matching and blending is inspired by the method described in ["Combining Markov Random Fields and Convolutional Neural Networks for Image Synthesis"](http://arxiv.org/abs/1601.04589). Effects similar to that paper can be achieved by turning off the analogy loss (or leave it on!) `--analogy-w=0` and turning on the B/B' content weighting via the `--b-content-w` parameter. Also, instead of using brute-force patch matching
