@@ -27,7 +27,9 @@ source venv/bin/activate
 python setup.py install
 ```
 
-If you have trouble with the above method, follow these directions to [Install latest keras and theano](http://keras.io/#installation) (requires theano, no tensorflow atm).
+If you have trouble with the above method, follow these directions to [Install latest keras and theano or TensorFlow](http://keras.io/#installation)
+
+The script `make_image_analogy.py` will be on your path in the venv.
 
 **Before running this script**, download the weights for the VGG16 model at:
 https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
@@ -55,13 +57,13 @@ It's too slow
 -------------
 If you don't have a beefy GPU or just want to quickly crank out a styled image,
 you have a few options to play with. They all trade detail for speed/memory.
-
- * set `--patch-size=1` or 2 to consider smaller feature patches (default is 3)
  * set `--mrf-w=0` to skip optimization of local coherence
  * use fewer feature layers by setting `--mrf-layers=conv4_1` and/or `--analogy-layers=conv4_1` (or other layers) which will consider half as many feature layers.
  * generate a smaller image by either using a smaller source Image B, or setting
   the `--width` or `--height` parameters.
- * enable Theano openmp threading by using env variables `THEANO_FLAGS='openmp=1,openmp_elemwise_minsize=<min_tensor_size>'` `OMP_NUM_THREADS=<cpu_num>`. You can read more about multi-core support [here](http://deeplearning.net/software/theano/tutorial/multi_cores.html).
+ * enable Theano openmp threading by using env variables `THEANO_FLAGS='openmp=1,openmp_elemwise_minsize=<min_tensor_size>'` `OMP_NUM_THREADS=<cpu_num>`. You can
+ read more about multi-core support [here](http://deeplearning.net/software/theano/tutorial/multi_cores.html).
+ * Use TensorFlow which seems to be a little more performant on CPUs
 
 Parameters
 ----------
@@ -92,6 +94,8 @@ Parameters
  * --patch-size Patch size used for matching (default: 3)
  * --use-full-analogy match on all of the analogy patches, instead of combining
     them into one image (slower/more memory but maybe more accurate)
+ * --model Select the patch matching model ('patchmatch' or 'brute') patchmatch is
+  the default and requires less GPU memory but is less accurate then brute.
 
 The analogy loss is the amount of influence of B -> A -> A' -> B'. It's a
 structure-preserving mapping of Image B into A' via A.
