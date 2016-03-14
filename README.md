@@ -19,7 +19,11 @@ analogies so you might want to take a look for inspiration.
 
 Installation
 ------------
-You'll want to run this on a GPU. http://deeplearning.net/software/theano/tutorial/using_gpu.html
+This requires either  [TensorFlow](https://www.tensorflow.org/versions/r0.7/get_started/os_setup.html)
+or [Theano](http://deeplearning.net/software/theano/install.html). If you don't
+have a GPU you'll want to use TensorFlow. GPU users may find to Theano to be
+faster at the expense of longer startup times. Here's the [Theano GPU guide]( http://deeplearning.net/software/theano/tutorial/using_gpu.html).
+
 
 To install via [virtualenv](https://virtualenv.readthedocs.org/en/latest/installation.html) run the following commands.
 
