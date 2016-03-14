@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.feature_extraction.image import extract_patches_2d, reconstruct_from_patches_2d
 
 
-
 def _calc_patch_grid_dims(shape, patch_size, patch_stride):
     x_w, x_h, x_c = shape
     num_rows = 1 + (x_h - patch_size) // patch_stride
@@ -57,8 +56,10 @@ class PatchMatcher(object):
         self.coords = np.random.uniform(0.0, 1.0,  # TODO: switch to pixels
             (2, self.num_input_rows, self.num_input_cols))# * [[[self.num_input_rows]],[[self.num_input_cols]]]
         self.similarity = np.zeros(input_shape[:2:-1], dtype ='float32')
-        self.delta_row = np.array([[[1.0]], [[0.0]]])
-        self.delta_col = np.array([[[0.0]], [[1.0]]])
+        self.min_propagration_row = 1.0 / self.num_input_rows
+        self.min_propagration_col = 1.0 / self.num_input_cols
+        self.delta_row = np.array([[[self.min_propagration_row]], [[0.0]]])
+        self.delta_col = np.array([[[0.0]], [[self.min_propagration_col]]])
 
     def update(self, input_img, reverse_propagation=False):
         input_patches = self.get_patches_for(input_img)

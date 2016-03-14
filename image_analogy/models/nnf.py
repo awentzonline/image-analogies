@@ -11,8 +11,8 @@ from .base import BaseModel
 
 class NNFModel(BaseModel):
     '''Faster model for image analogies.'''
-    num_mrf_nnf_steps = 3
-    num_analogy_nnf_steps = 15
+    num_mrf_nnf_steps = 10
+    num_analogy_nnf_steps = 30
 
     def build(self, a_image, ap_image, b_image, output_shape):
         self.output_shape = output_shape
