@@ -179,9 +179,9 @@ if __name__ == '__main__':
         #print end-start
     start = time.time()
     result = matcher.get_reconstruction(patches=matcher.target_patches)
-    print result.shape
+    print(result.shape)
     end = time.time()
-    print end-start
+    print(end-start)
     outimg = deprocess_image(result, contrast_percent=0)
     # # imsave takes (rows, cols, channels)
     imsave(output_prefix + '_best.png', outimg)
