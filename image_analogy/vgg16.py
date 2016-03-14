@@ -1,6 +1,7 @@
 import os
 
 import h5py
+import numpy as np
 from keras import backend as K
 from keras.layers.convolutional import (
     AveragePooling2D, Convolution2D, MaxPooling2D, ZeroPadding2D)
@@ -74,7 +75,7 @@ def get_model(img_width, img_height, weights_path='vgg16_weights.h5', pool_mode=
     # (trained on ImageNet, won the ILSVRC competition in 2014)
     # note: when there is a complete match between your model definition
     # and your weight savefile, you can simply call model.load_weights(filename)
-    assert os.path.exists(weights_path), 'Model weights not found (see "weights_path" variable in script).'
+    assert os.path.exists(weights_path), 'Model weights not found (see "--vgg-weights" parameter).'
     f = h5py.File(weights_path)
     for k in range(f.attrs['nb_layers']):
         if k >= len(model.layers):
@@ -82,9 +83,10 @@ def get_model(img_width, img_height, weights_path='vgg16_weights.h5', pool_mode=
             break
         g = f['layer_{}'.format(k)]
         weights = [g['param_{}'.format(p)] for p in range(g.attrs['nb_params'])]
-        model.layers[k].set_weights(weights)
         layer = model.layers[k]
         if isinstance(layer, Convolution2D):
-            layer.W = layer.W[:, :, ::-1, ::-1]
+            weights[0] = np.array(weights[0])[:, :, ::-1, ::-1]
+        layer.set_weights(weights)
+
     f.close()
     return model

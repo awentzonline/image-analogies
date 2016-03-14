@@ -1,12 +1,12 @@
 import numpy as np
 from scipy.misc import imread, imresize
 
-import vgg16
+from . import vgg16
 
 
 # util function to open, resize and format pictures into appropriate tensors
 def load_image(image_path):
-    return imread(image_path, mode='RGB')
+    return imread(image_path)# , mode='RGB')  # NOTE: this mode kwarg requires v0.17
 
 
 # util function to open, resize and format pictures into appropriate tensors

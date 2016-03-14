@@ -1,6 +1,12 @@
 *.DS_Store
 *.pyc
 *.swp
-out/*
+*.egg-info
+build/
+examples/out/*
+# UNIGNORE THIS LATER
+examples/images/*
+# ENDUNIGNORE
+!examples/README.md
 vgg16_weights.h5
 venv

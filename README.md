@@ -24,7 +24,7 @@ To install via [virtualenv](https://virtualenv.readthedocs.org/en/latest/install
 ```
 virtualenv venv
 source venv/bin/activate
-pip install -r requirements.txt
+python setup.py install
 ```
 
 If you have trouble with the above method, follow these directions to [Install latest keras and theano](http://keras.io/#installation) (requires theano, no tensorflow atm).
@@ -32,24 +32,35 @@ If you have trouble with the above method, follow these directions to [Install l
 **Before running this script**, download the weights for the VGG16 model at:
 https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
 (source: https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3)
-and make sure the variable `weights_path` in this script matches the location of the file or use the `--vgg-weights` parameter
+It assumes the weights are in the current working directory when you run the
+script. If you place them somewhere else make sure to pass the
+`--vgg-weights=<location-of-the-weights.h5>` parameter.
 
 Example script usage:
-`python image_analogy.py path_to_A path_to_A_prime path_to_B prefix_for_B_prime`
+`make_image_analogy.py image-A image-A-prime image-B prefix_for_output`
 
 e.g.:
 
-`python image_analogy.py images/arch-mask.jpg images/arch.jpg images/arch-newmask.jpg out/arch`
+`make_image_analogy.py images/arch-mask.jpg images/arch.jpg images/arch-newmask.jpg out/arch`
+
+The examples directory has a script, `render_example.sh` which accepts an example
+name prefix and, optionally the location of your vgg weights.
+
+`./render_example.sh arch /path/to/your/weights.h5`
 
 Currently, A and A' must be the same size, the same holds for B and B'.
 Output size is the same as Image B, unless specified otherwise.
 
 It's too slow
 -------------
-If you don't have a beefy GPU or just want to crank out a styled image, you have a few options to play with. They all trade detail for speed/memory.
+If you don't have a beefy GPU or just want to quickly crank out a styled image,
+you have a few options to play with. They all trade detail for speed/memory.
+
  * set `--patch-size=1` or 2 to consider smaller feature patches (default is 3)
  * set `--mrf-w=0` to skip optimization of local coherence
  * use fewer feature layers by setting `--mrf-layers=conv4_1` and/or `--analogy-layers=conv4_1` (or other layers) which will consider half as many feature layers.
+ * generate a smaller image by either using a smaller source Image B, or setting
+  the `--width` or `--height` parameters.
  * enable Theano openmp threading by using env variables `THEANO_FLAGS='openmp=1,openmp_elemwise_minsize=<min_tensor_size>'` `OMP_NUM_THREADS=<cpu_num>`. You can read more about multi-core support [here](http://deeplearning.net/software/theano/tutorial/multi_cores.html).
 
 Parameters
@@ -103,3 +114,5 @@ The code for this implementation is provided under the MIT license.
 The suggested VGG16 weights are originally from [here](https://gist.github.com/ksimonyan/211839e770f7b538e2d8) and are
 licensed http://creativecommons.org/licenses/by-nc/4.0/ Open a ticket if you
 have a suggestion for a more free-as-in-free-speech license.
+
+The attributions for the example art can be found in `examples/images/ATTRIBUTIONS.md`
