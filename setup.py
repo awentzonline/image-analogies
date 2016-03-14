@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-from distutils.core import setup
-
+from distutils.core import setup, find_packages
+from setuptools import find_packages
 
 setup(
     name='neural-image-analogies',
-    version='0.0.1',
+    version='0.0.2',
     description='Generate image analogies with a deep neural network.',
     author='Adam Wentz',
     author_email='adam@adamwentz.com',
     url='https://github.com/awentzonline/image-analogies/',
-    packages=['image_analogy'],
+    packages=find_packages(),
     scripts=[
         'scripts/make_image_analogy.py'
     ],
