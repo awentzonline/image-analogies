@@ -2,6 +2,9 @@ import argparse
 import os
 
 
+VGG_ENV_VAR = 'VGG_WEIGHT_PATH'
+
+
 class CommaSplitAction(argparse.Action):
     '''Split n strip incoming string argument.'''
     def __call__(self, parser, namespace, values, option_string=None):
@@ -65,7 +68,7 @@ def parse_args():
                         default=1, help='Patch stride used for matching. Currently required to be 1.')
     # VGG
     parser.add_argument('--vgg-weights', dest='vgg_weights', type=str,
-                        default='vgg16_weights.h5', help='Path to VGG16 weights.')
+                        default=os.environ.get(VGG_ENV_VAR, 'vgg16_weights.h5'), help='Path to VGG16 weights.')
     parser.add_argument('--pool-mode', dest='pool_mode', type=str,
                         default='max', help='Pooling mode for VGG ("avg" or "max")')
     # jitter

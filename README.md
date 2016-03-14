@@ -24,7 +24,7 @@ To install via [virtualenv](https://virtualenv.readthedocs.org/en/latest/install
 ```
 virtualenv venv
 source venv/bin/activate
-pip install .
+pip install -r requirements.txt
 ```
 
 If you have trouble with the above method, follow these directions to [Install latest keras and theano or TensorFlow](http://keras.io/#installation)
