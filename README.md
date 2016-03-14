@@ -64,15 +64,15 @@ Output size is the same as Image B, unless specified otherwise.
 
 It's too slow
 -------------
-If you don't have a beefy GPU or just want to quickly crank out a styled image,
-you have a few options to play with. They all trade detail for speed/memory.
+If you're not using a GPU, use TensorFlow. My Macbook Pro with with can render a
+512x512 image in approximately 12 minutes using TensorFlow and --mrf-w=0. Here
+are some other options which mostly trade quality for speed.
+
+ * If you're using Theano enable openmp threading by using env variables `THEANO_FLAGS='openmp=1'` `OMP_NUM_THREADS=<cpu_num>`. You can read more about multi-core support [here](http://deeplearning.net/software/theano/tutorial/multi_cores.html).
  * set `--mrf-w=0` to skip optimization of local coherence
  * use fewer feature layers by setting `--mrf-layers=conv4_1` and/or `--analogy-layers=conv4_1` (or other layers) which will consider half as many feature layers.
  * generate a smaller image by either using a smaller source Image B, or setting
   the `--width` or `--height` parameters.
- * enable Theano openmp threading by using env variables `THEANO_FLAGS='openmp=1,openmp_elemwise_minsize=<min_tensor_size>'` `OMP_NUM_THREADS=<cpu_num>`. You can
- read more about multi-core support [here](http://deeplearning.net/software/theano/tutorial/multi_cores.html).
- * Use TensorFlow which seems to be a little more performant on CPUs
  * ensure you're not using `--model=brute` which needs a powerful GPU
 
 Parameters
