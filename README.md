@@ -24,7 +24,8 @@ or [Theano](http://deeplearning.net/software/theano/install.html). If you don't
 have a GPU you'll want to use TensorFlow. GPU users may find to Theano to be
 faster at the expense of longer startup times. Here's the [Theano GPU guide]( http://deeplearning.net/software/theano/tutorial/using_gpu.html).
 
-Here's how to [configure the backend with Keras](http://keras.io/backend/).
+Here's how to [configure the backend with Keras](http://keras.io/backend/) and
+set your default device (e.g. cpu, gpu0).
 
 To install via [virtualenv](https://virtualenv.readthedocs.org/en/latest/installation.html) run the following commands.
 
