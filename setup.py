@@ -11,8 +11,7 @@ setup(
     url='https://github.com/awentzonline/image-analogies/',
     packages=['image_analogy'],
     scripts=[
-        'scripts/make_image_analogy.py',
-        'scripts/make_nnf_analogy.py'
+        'scripts/make_image_analogy.py'
     ],
     install_requires=[
         'Cython>=0.23.4',
