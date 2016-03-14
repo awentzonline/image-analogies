@@ -1,6 +1,8 @@
 import argparse
 import os
 
+from keras import backend as K
+
 
 VGG_ENV_VAR = 'VGG_WEIGHT_PATH'
 
@@ -82,11 +84,12 @@ def parse_args():
 
     # hack for CPU users :(
     assert args.a_scale_mode in ('ratio', 'none', 'match'), 'a-scale-mode must be set to one of "ratio", "none", or "match"'
-    from keras.backend import theano_backend
-    if not theano_backend._on_gpu() and args.a_scale_mode != 'match':
-        args.a_scale_mode = 'match'  # prevent conv2d errors when using CPU
-        args.a_scale = 1.0
-        print('CPU mode detected. Forcing a-scale-mode to "match"')
+    if K._BACKEND == 'theano':
+        from keras.backend import theano_backend
+        if not theano_backend._on_gpu() and args.a_scale_mode != 'match':
+            args.a_scale_mode = 'match'  # prevent conv2d errors when using CPU
+            args.a_scale = 1.0
+            print('CPU mode detected. Forcing a-scale-mode to "match"')
     # make sure weights are in place
     if not os.path.exists(args.vgg_weights):
         print('Model weights not found (see "--vgg-weights" parameter).')
