@@ -39,13 +39,10 @@ If you have trouble with the above method, follow these directions to [Install l
 
 The script `make_image_analogy.py` should now be on your path.
 
-**Before running this script**, download the weights for the VGG16 model at:
-https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
-(source: https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3)
-It assumes the weights are in the current working directory when you run the
-script. If you place them somewhere else make sure to pass the
-`--vgg-weights=<location-of-the-weights.h5>` parameter. You can also set the
-`VGG_WEIGHT_PATH` environment variable.
+**Before running this script**, download the [weights for the VGG16 model](
+https://github.com/awentzonline/image-analogies/releases/download/v0.0.5/vgg16_weights.h5). This file contains only the convolutional layers of VGG16 which is 10% of the full size. [Original source of full weights](https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3).
+The script assumes the weights are in the current working directory. If you place
+them somewhere else make sure to pass the `--vgg-weights=<location-of-the-weights.h5>` parameter or set the `VGG_WEIGHT_PATH` environment variable.
 
 Example script usage:
 `make_image_analogy.py image-A image-A-prime image-B prefix_for_output`
