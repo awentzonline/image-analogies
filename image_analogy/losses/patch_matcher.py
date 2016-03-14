@@ -90,7 +90,7 @@ class PatchMatcher(object):
             self.coords, self.similarity = self.take_best(coords_row, similarity_row, coords_col, similarity_col)
 
     def _random_update(self, input_patches):
-        for alpha in range(self.num_random_steps):  # NOTE this should actually stop when the move is < 1
+        for alpha in range(1, self.num_random_steps + 1):  # NOTE this should actually stop when the move is < 1
             new_coords = self.clip_coords(self.coords + np.random.uniform(-1.0, 1.0, self.coords.shape) * self.random_max_radius * self.random_scale ** alpha)
             self.coords, self.similarity = self.eval_state(new_coords, input_patches)
 

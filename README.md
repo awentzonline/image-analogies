@@ -4,13 +4,14 @@ neural image analogies
 ![Image of Trump](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/trump-image-analogy.jpg)
 ![Image of Sugar Steve](https://raw.githubusercontent.com/awentzonline/image-analogies/master/images/sugarskull-analogy.jpg)
 
-This is basically an implementation of this "Image Analogies" paper http://www.mrl.nyu.edu/projects/image-analogies/index.html In our case, we use feature maps from VGG16. The patch matching and blending is done with a method described in "Combining Markov Random Fields and Convolutional Neural Networks for Image Synthesis" http://arxiv.org/abs/1601.04589  Effects similar to that paper can be achieved by
-turning off the analogy loss (or leave it on!) and turning on the B/B' content weighting
-via the `--b-content-w` parameter.
+This is basically an implementation of this ["Image Analogies" paper]( http://www.mrl.nyu.edu/projects/image-analogies/index.html), In our case, we use feature maps from VGG16. The patch matching and blending is inspired by the method described in ["Combining Markov Random Fields and Convolutional Neural Networks for Image Synthesis"](http://arxiv.org/abs/1601.04589). Effects similar to that paper can be achieved by turning off the analogy loss (or leave it on!) `--analogy-w=0` and turning on the B/B' content weighting via the `--b-content-w` parameter. Also, instead of using brute-force patch matching
+we use the [PatchMatch algorithm](http://gfx.cs.princeton.edu/gfx/pubs/Barnes_2009_PAR/index.php)
+to approximate the best patch matches. Brute-force matching can be re-enabled by setting
+`--model=brute`
 
 The initial code was adapted from the Keras "neural style transfer" example.
 
-The example arch images are from the "Image Analogies" website at http://www.mrl.nyu.edu/projects/image-analogies/tbn.html
+The example arch images are from the ["Image Analogies" website]( http://www.mrl.nyu.edu/projects/image-analogies/tbn.html).
 They have some other good examples from their own implementation which
 are worth a look. Their paper discusses the various applications of image
 analogies so you might want to take a look for inspiration.
@@ -36,7 +37,8 @@ https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
 (source: https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3)
 It assumes the weights are in the current working directory when you run the
 script. If you place them somewhere else make sure to pass the
-`--vgg-weights=<location-of-the-weights.h5>` parameter.
+`--vgg-weights=<location-of-the-weights.h5>` parameter. You can also set the
+`VGG_WEIGHT_PATH` environment variable.
 
 Example script usage:
 `make_image_analogy.py image-A image-A-prime image-B prefix_for_output`

@@ -13,11 +13,17 @@ make_image_analogy.py \
 make_image_analogy.py \
   images/$PREFIX-A.jpg images/$PREFIX-Ap.jpg \
   images/$PREFIX-B.jpg out/$PREFIX-blend/$PREFIX-Bp \
-  --mrf-w=0.5 --height=$HEIGHT \
+  --mrf-w=1 --height=$HEIGHT \
   --vgg-weights=$VGG_WEIGHTS --output-full
 
 make_image_analogy.py \
   images/$PREFIX-A.jpg images/$PREFIX-Ap.jpg \
-  images/$PREFIX-B.jpg out/$PREFIX-mrf-only/$PREFIX-Bp \
+  images/$PREFIX-B.jpg out/$PREFIX-style-xfer/$PREFIX-Bp \
+  --analogy-w=0 --b-content-w=1 --mrf-w=1 --height=$HEIGHT \
+  --vgg-weights=$VGG_WEIGHTS --output-full
+
+make_image_analogy.py \
+  images/$PREFIX-A.jpg images/$PREFIX-Ap.jpg \
+  images/$PREFIX-B.jpg out/$PREFIX-texture/$PREFIX-Bp \
   --analogy-w=0 --height=$HEIGHT \
   --vgg-weights=$VGG_WEIGHTS --output-full
