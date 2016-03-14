@@ -68,17 +68,21 @@ class NNFModel(BaseModel):
                     patch_stride=self.args.patch_stride, jump_size=1.0)
                 loss += (self.args.analogy_weight / len(self.args.analogy_layers)) * al
 
+        existing_feature_nnfs = getattr(self, 'feature_nnfs', [None] * len(self.args.mrf_layers))
         self.feature_nnfs = []
         if self.args.mrf_weight:
-            for layer_name in self.args.mrf_layers:
+            for layer_name, existing_nnf in zip(self.args.mrf_layers, existing_feature_nnfs):
                 ap_image_features = all_ap_image_features[layer_name][0]
                 # current combined output
                 layer_features = self.get_layer_output(layer_name)
                 combination_features = layer_features[0, :, :, :]
                 input_shape = self.get_layer_output_shape(layer_name)
-                matcher = PatchMatcher(
-                    (input_shape[3], input_shape[2], input_shape[1]), ap_image_features,
-                    patch_size=self.args.patch_size, jump_size=1.0, patch_stride=self.args.patch_stride)
+                if existing_nnf:
+                    matcher = existing_nnf.matcher.scale((input_shape[3], input_shape[2], input_shape[1]), ap_image_features)
+                else:
+                    matcher = PatchMatcher(
+                        (input_shape[3], input_shape[2], input_shape[1]), ap_image_features,
+                        patch_size=self.args.patch_size, jump_size=1.0, patch_stride=self.args.patch_stride)
                 nnf = NNFState(matcher, self.get_f_layer(layer_name))
                 self.feature_nnfs.append(nnf)
                 sl = content_loss(combination_features, nnf.placeholder)
