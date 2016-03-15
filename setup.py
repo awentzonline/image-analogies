@@ -4,7 +4,7 @@ from setuptools import find_packages
 
 setup(
     name='neural-image-analogies',
-    version='0.0.6',
+    version='0.0.7',
     description='Generate image analogies with a deep neural network.',
     author='Adam Wentz',
     author_email='adam@adamwentz.com',
