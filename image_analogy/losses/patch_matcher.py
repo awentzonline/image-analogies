@@ -112,7 +112,7 @@ class PatchMatcher(object):
     def patch_similarity(self, source, coords):
         '''Check the similarity of the patches specified in coords.'''
         target_vals = self.lookup_coords(self.target_patches_normed, coords)
-        err = source * target_vals[:,:,:,:,::-1]
+        err = source * target_vals
         return np.sum(err, axis=(2, 3, 4))
 
     def clip_coords(self, coords):
