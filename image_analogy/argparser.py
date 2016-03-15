@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument('--min-scale', dest='min_scale', type=float,
                         default=0.25, help='Smallest scale to iterate')
     parser.add_argument('--a-scale-mode', dest='a_scale_mode', type=str,
-                        default='ratio', help='Method of scaling A and A\' relative to B')
+                        default='none', help='Method of scaling A and A\' relative to B')
     parser.add_argument('--a-scale', dest='a_scale', type=float,
                         default=1.0, help='Additional scale factor for A and A\'')
     parser.add_argument('--output-full', dest='output_full_size', action='store_true',
