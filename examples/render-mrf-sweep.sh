@@ -9,7 +9,8 @@ for ((i=0; i < ${#MRF_VALS[@]}; i++)); do
   MRF_VAL=${MRF_VALS[i]}
   make_image_analogy.py \
     images/$PREFIX-A.jpg images/$PREFIX-Ap.jpg \
-    images/$PREFIX-B.jpg out/$PREFIX-${MRF_VAL}/$PREFIX-Bp \
+    images/$PREFIX-B.jpg out/$PREFIX-mrf-${MRF_VAL}/$PREFIX-Bp \
     --mrf-w=${MRF_VAL} --patch-size=3 --height=$HEIGHT \
+    --model=brute \
     --vgg-weights=$VGG_WEIGHTS --output-full
 done

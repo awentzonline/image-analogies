@@ -93,7 +93,7 @@ class PatchMatcher(object):
 
     def _random_update(self, input_patches):
         for alpha in range(1, self.num_random_steps + 1):  # NOTE this should actually stop when the move is < 1
-            new_coords = self.clip_coords(self.coords + np.random.uniform(-1.0, 1.0, self.coords.shape) * self.random_max_radius * self.random_scale ** alpha)
+            new_coords = self.clip_coords(self.coords + np.random.uniform(-self.random_max_radius, self.random_max_radius, self.coords.shape) * self.random_scale ** alpha)
             self.coords, self.similarity = self.eval_state(new_coords, input_patches)
 
     def eval_state(self, new_coords, input_patches):
@@ -144,8 +144,8 @@ class PatchMatcher(object):
                 num_random_steps=self.num_random_steps,
                 random_max_radius=self.random_max_radius,
                 random_scale=self.random_scale)
-        new_matcher.coords = congrid(self.coords, new_matcher.coords.shape)
-        new_matcher.similarity = congrid(self.similarity, new_matcher.coords.shape)
+        new_matcher.coords = congrid(self.coords, new_matcher.coords.shape, method='neighbour')
+        new_matcher.similarity = congrid(self.similarity, new_matcher.coords.shape, method='neighbour')
         return new_matcher
 
 

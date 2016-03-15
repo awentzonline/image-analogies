@@ -76,7 +76,7 @@ class NNFModel(BaseModel):
                 layer_features = self.get_layer_output(layer_name)
                 combination_features = layer_features[0, :, :, :]
                 input_shape = self.get_layer_output_shape(layer_name)
-                if existing_nnf:
+                if existing_nnf and not self.args.randomize_mnf_nnf:
                     matcher = existing_nnf.matcher.scale((input_shape[3], input_shape[2], input_shape[1]), ap_image_features)
                 else:
                     matcher = PatchMatcher(
