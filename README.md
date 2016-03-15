@@ -72,6 +72,16 @@ are some other options which mostly trade quality for speed.
   the `--width` or `--height` parameters.
  * ensure you're not using `--model=brute` which needs a powerful GPU
 
+I want it to look better
+------------------------
+The default settings are somewhat lowered to give the average user a better chance
+at generating something on whatever computer they may have. If you have a powerful GPU
+then here are some options for nicer output:
+ * `--model=brute` will turn on brute-force patch-matching and will be done on GPU. This is Theano-only (default=patchmatch)
+ * `--patch-size=3` this will allow for much nicer-looking details (default=1)
+ * `--mrf-layers=conv1_1,conv2_1,...` add more layers to the mix (also `analogy-layers` and `content-layers`)
+
+
 Parameters
 ----------
  * --width Sets image output max width
@@ -98,7 +108,7 @@ Parameters
  * --analogy-layers Comma-separated list of layer names to be used for the analogy loss (default: "conv3_1,conv_4_1")
  * --mrf-layers Comma-separated list of layer names to be used for the MRF loss (default: "conv3_1,conv_4_1")
  * --content-layers Comma-separated list of layer names to be used for the content loss (default: "conv3_1,conv_4_1")
- * --patch-size Patch size used for matching (default: 3)
+ * --patch-size Patch size used for matching (default: 1)
  * --use-full-analogy match on all of the analogy patches, instead of combining
     them into one image (slower/more memory but maybe more accurate)
  * --model Select the patch matching model ('patchmatch' or 'brute') patchmatch is
