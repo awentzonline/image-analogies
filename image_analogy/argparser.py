@@ -44,6 +44,12 @@ def parse_args():
                         default=5, help='Number of iterations per scale')
     parser.add_argument('--model', dest='match_model', type=str,
                         default='patchmatch', help='Matching algorithm (patchmatch or brute)')
+    parser.add_argument('--mrf-nnf-steps', dest='mrf_nnf_steps', type=int,
+                        default=3, help='Number of patchmatch updates per iteration for local coherence loss.')
+    parser.add_argument('--no-zoom-mrf-nnf', dest='reset_mnf_steps', action='store_true',
+                        help='Randomize the local coherence similarity matrix at the start of an iteration instead of scaling up the last one.')
+    parser.add_argument('--analogy-nnf-steps', dest='analogy_nnf_steps', type=int,
+                        default=10, help='Number of patchmatch updates for the analogy loss.')
     # loss
     parser.add_argument('--mrf-w', dest='mrf_weight', type=float,
                         default=1.0, help='Weight for MRF loss between A\' and B\'')

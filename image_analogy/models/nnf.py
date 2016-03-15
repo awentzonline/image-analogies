@@ -11,9 +11,6 @@ from .base import BaseModel
 
 class NNFModel(BaseModel):
     '''Faster model for image analogies.'''
-    num_mrf_nnf_steps = 10
-    num_analogy_nnf_steps = 30
-
     def build(self, a_image, ap_image, b_image, output_shape):
         self.output_shape = output_shape
         loss = self.build_loss(a_image, ap_image, b_image)
@@ -33,10 +30,12 @@ class NNFModel(BaseModel):
         x = x.reshape(self.output_shape)
         f_inputs = [x]
         # update the patch indexes
+        # start_t = time.time()
         for nnf in self.feature_nnfs:
-            nnf.update(x, num_steps=self.num_mrf_nnf_steps)
+            nnf.update(x, num_steps=self.args.mrf_nnf_steps)
             new_target = nnf.matcher.get_reconstruction()
             f_inputs.append(new_target)
+        # print('PatchMatch update in {:.2f} seconds'.format(time.time() - start_t))
         # run it through
         outs = self.f_outputs(f_inputs)
         loss_value = outs[0]
@@ -64,7 +63,7 @@ class NNFModel(BaseModel):
                 combination_features = layer_features[0, :, :, :]
                 al = nnf_analogy_loss(
                     a_features, ap_image_features, b_features, combination_features,
-                    num_steps=self.num_analogy_nnf_steps, patch_size=self.args.patch_size,
+                    num_steps=self.args.analogy_nnf_steps, patch_size=self.args.patch_size,
                     patch_stride=self.args.patch_stride, jump_size=1.0)
                 loss += (self.args.analogy_weight / len(self.args.analogy_layers)) * al
 

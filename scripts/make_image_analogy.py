@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 '''Neural Image Analogies with Keras
 
-Before running this script, download the weights for the VGG16 model at:
-https://drive.google.com/file/d/0Bz7KyqmuGsilT0J5dmRCM0ROVHc/view?usp=sharing
+Before running this script, download the weights for the convolutional layers of
+the VGG16 model at:
+https://github.com/awentzonline/image-analogies/releases/download/v0.0.5/vgg16_weights.h5
 (source: https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3)
 and make sure the parameter `vgg_weights` matches the location of the file.
-
-It is preferrable to run this script on GPU, for speed.
 '''
+import time
+
 import image_analogy.argparser
 import image_analogy.main
 
@@ -21,7 +22,9 @@ if __name__ == '__main__':
         else:
             print('Using brute-force model')
             from image_analogy.models.analogy import AnalogyModel as model_class
+        start_time = time.time()
         try:
             image_analogy.main.main(args, model_class)
         except KeyboardInterrupt:
             print('Shutting down...')
+        print('Done after {:.2f} seconds'.format(time.time() - start_time))
