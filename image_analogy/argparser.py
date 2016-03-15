@@ -45,14 +45,14 @@ def parse_args():
     parser.add_argument('--model', dest='match_model', type=str,
                         default='patchmatch', help='Matching algorithm (patchmatch or brute)')
     parser.add_argument('--mrf-nnf-steps', dest='mrf_nnf_steps', type=int,
-                        default=3, help='Number of patchmatch updates per iteration for local coherence loss.')
+                        default=7, help='Number of patchmatch updates per iteration for local coherence loss.')
     parser.add_argument('--no-zoom-mrf-nnf', dest='reset_mnf_steps', action='store_true',
-                        help='Randomize the local coherence similarity matrix at the start of an iteration instead of scaling up the last one.')
+                        help='Randomize the local coherence similarity matrix at the start of a new scale instead of scaling up the last one.')
     parser.add_argument('--analogy-nnf-steps', dest='analogy_nnf_steps', type=int,
-                        default=10, help='Number of patchmatch updates for the analogy loss.')
+                        default=15, help='Number of patchmatch updates for the analogy loss (done once per scale).')
     # loss
     parser.add_argument('--mrf-w', dest='mrf_weight', type=float,
-                        default=1.0, help='Weight for MRF loss between A\' and B\'')
+                        default=0.5, help='Weight for MRF loss between A\' and B\'')
     parser.add_argument('--b-content-w', dest='b_bp_content_weight', type=float,
                         default=0.0, help='Weight for content loss between B and B\'')
     parser.add_argument('--analogy-w', dest='analogy_weight', type=float,

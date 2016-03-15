@@ -9,6 +9,6 @@ make_image_analogy.py \
   images/season-xfer-A.jpg images/season-xfer-Ap.jpg \
   $TARGET out/$OUTPUT_PREFIX-winterized/$OUTPUT_PREFIX-Bp \
   --analogy-layers='conv1_1,conv2_1,conv3_1,conv4_1' \
-  --mrf-w=0.5 --scales=5 --contrast=0.2 \
+  --scales=5 --contrast=0.2 \
   --height=$HEIGHT \
   --vgg-weights=$VGG_WEIGHTS --output-full
