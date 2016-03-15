@@ -19,6 +19,9 @@ if __name__ == '__main__':
         if args.match_model == 'patchmatch':
             print('Using PatchMatch model')
             from image_analogy.models.nnf import NNFModel as model_class
+        elif args.match_model == 'hybrid':
+            print('Using Hybrid-Exhaustive model')
+            from image_analogy.models.hybrid_nnf import HybridNNFModel as model_class
         else:
             print('Using brute-force model')
             from image_analogy.models.analogy import AnalogyModel as model_class

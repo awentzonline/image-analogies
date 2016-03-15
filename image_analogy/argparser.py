@@ -50,6 +50,9 @@ def parse_args():
                         help='Randomize the local coherence similarity matrix at the start of a new scale instead of scaling it up.')
     parser.add_argument('--analogy-nnf-steps', dest='analogy_nnf_steps', type=int,
                         default=15, help='Number of patchmatch updates for the analogy loss (done once per scale).')
+    parser.add_argument('--hybrid-nnf-update-p', dest='hybrid_nnf_update_p', type=float,
+                        default=0.6, help='Probability of an MRF NNF update during iteration.')
+
     # loss
     parser.add_argument('--mrf-w', dest='mrf_weight', type=float,
                         default=0.5, help='Weight for MRF loss between A\' and B\'')
