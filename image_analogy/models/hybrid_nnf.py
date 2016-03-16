@@ -5,7 +5,7 @@ import numpy as np
 from keras import backend as K
 
 from image_analogy.losses.core import content_loss
-from image_analogy.losses.nnf import nnf_analogy_loss, NNFState
+from image_analogy.losses.nnf import hybrid_nnf_analogy_loss, HybridNNFState
 from image_analogy.losses.hybrid_brute_match import HybridBruteMatcher
 
 from .base import BaseModel
@@ -31,14 +31,14 @@ class HybridNNFModel(BaseModel):
     def eval_loss_and_grads(self, x):
         x = x.reshape(self.output_shape)
         f_inputs = [x]
-        # update the patch indexes
-        # start_t = time.time()
+        # update the MRF NNF
+        #start_t = time.time()
         for nnf in self.feature_nnfs:
-            if not nnf.matcher.has_reconstruction() or random.random() < 0.5:  # make update a tuneable frequency
-                nnf.update(x, num_steps=self.args.mrf_nnf_steps)
-            new_target = nnf.matcher.get_reconstruction()
+            if True:#not nnf.has_reconstruction() or random.random() < self.args.hybrid_nnf_update_p:
+                nnf.update(x)
+            new_target = nnf.get_reconstruction()
             f_inputs.append(new_target)
-        # print('PatchMatch update in {:.2f} seconds'.format(time.time() - start_t))
+        #print('MRF NNF update in {:.2f} seconds'.format(time.time() - start_t))
         # run it through
         outs = self.f_outputs(f_inputs)
         loss_value = outs[0]
@@ -64,10 +64,9 @@ class HybridNNFModel(BaseModel):
                 # current combined output
                 layer_features = self.get_layer_output(layer_name)
                 combination_features = layer_features[0, :, :, :]
-                al = nnf_analogy_loss(
+                al = hybrid_nnf_analogy_loss(
                     a_features, ap_image_features, b_features, combination_features,
-                    num_steps=self.args.analogy_nnf_steps, patch_size=self.args.patch_size,
-                    patch_stride=self.args.patch_stride, jump_size=1.0)
+                    patch_size=self.args.patch_size, patch_stride=self.args.patch_stride)
                 loss += (self.args.analogy_weight / len(self.args.analogy_layers)) * al
 
         existing_feature_nnfs = getattr(self, 'feature_nnfs', [None] * len(self.args.mrf_layers))
@@ -82,9 +81,9 @@ class HybridNNFModel(BaseModel):
                 matcher = HybridBruteMatcher(
                         (input_shape[3], input_shape[2], input_shape[1]), ap_image_features,
                         patch_size=self.args.patch_size, patch_stride=self.args.patch_stride)
-                nnf = NNFState(matcher, self.get_f_layer(layer_name))
+                nnf = HybridNNFState(matcher, self.get_f_layer(layer_name))
                 self.feature_nnfs.append(nnf)
-                sl = content_loss(combination_features, nnf.placeholder)
+                sl = content_loss(nnf.placeholder, combination_features)
                 loss += (self.args.mrf_weight / len(self.args.mrf_layers)) * sl
 
         if self.args.b_bp_content_weight:

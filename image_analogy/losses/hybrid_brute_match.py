@@ -44,6 +44,7 @@ class HybridBruteMatcher(object):
         self.num_input_patches = self.num_input_rows * self.num_input_cols
         self.target_patches = make_patches(target_img, patch_size)
         self.target_patches_norm = patches_normal(self.target_patches)
+        self.target_patched_normed = self.target_patches / self.target_patches_norm
         self.build()
         self.reconstruction = None
 
@@ -58,25 +59,18 @@ class HybridBruteMatcher(object):
     def match(self, input_patches, input_patches_norm=None):
         if input_patches_norm is None:
             input_patches_norm = patches_normal(input_patches)
-        return self.f_matches([input_patches / input_patches_norm, self.target_patches / self.target_patches_norm])[0]
+        return self.f_matches([input_patches / input_patches_norm, self.target_patched_normed])[0]
 
-    def reconstruct(self, ids):
-        patches = self.target_patches[ids.flatten()]
+    def reconstruct(self, ids, target=None, target_patches=None):
+        if target is not None:
+            target_patches = self.get_patches_for(target)
+        if target_patches is None:
+            target_patches = self.target_patches
+        patches = target_patches[ids.flatten()]
         return combine_patches(patches, self.input_shape)
 
-    # the patchmatcher api
     def get_patches_for(self, img):
         return make_patches(img, self.patch_size);
-
-    def update_with_patches(self, patches):
-        matches = self.match(patches)
-        self.reconstruction = self.reconstruct(matches)
-
-    def get_reconstruction(self):
-        return self.reconstruction
-
-    def has_reconstruction(self):
-        return self.reconstruction is not None;
 
 
 if __name__ == '__main__':

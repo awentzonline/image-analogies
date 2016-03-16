@@ -24,10 +24,10 @@ def hybrid_nnf_analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1
     '''image shapes: (channels, rows, cols)
     '''
     bs = b.shape
-    matcher = HybridPatchMatcher((bs[2], bs[1], bs[0]), a, patch_size=patch_size, patch_stride=patch_stride)
+    matcher = HybridBruteMatcher((bs[2], bs[1], bs[0]), a, patch_size=patch_size, patch_stride=patch_stride)
     b_patches = matcher.get_patches_for(b)
-    matcher.update_with_patches(b_patches)
-    target = matcher.get_reconstruction(combined=a_prime)
+    match_ids = matcher.match(b_patches)
+    target = matcher.reconstruct(match_ids, target=a_prime)
     loss = content_loss(target, b_prime)
     return loss
 
@@ -53,8 +53,16 @@ class HybridNNFState(object):
         mis = matcher.input_shape
         self.placeholder = K.placeholder(mis[::-1])
         self.f_layer = f_layer
+        self.reconstruction = None
 
     def update(self, x, **kwargs):
         x_f = self.f_layer([x])[0]
         x_patches = self.matcher.get_patches_for(x_f[0])
-        self.matcher.update_with_patches(x_patches)
+        match_ids = self.matcher.match(x_patches)
+        self.reconstruction = self.matcher.reconstruct(match_ids)
+
+    def get_reconstruction(self):
+        return self.reconstruction
+
+    def has_reconstruction(self):
+        return self.reconstruction is not None
