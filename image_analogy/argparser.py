@@ -51,25 +51,25 @@ def parse_args():
     parser.add_argument('--analogy-nnf-steps', dest='analogy_nnf_steps', type=int,
                         default=15, help='Number of patchmatch updates for the analogy loss (done once per scale).')
     # loss
-    parser.add_argument('--mrf-w', dest='mrf_weight', type=float,
-                        default=0.5, help='Weight for MRF loss between A\' and B\'')
-    parser.add_argument('--b-content-w', dest='b_bp_content_weight', type=float,
-                        default=0.0, help='Weight for content loss between B and B\'')
-    parser.add_argument('--analogy-w', dest='analogy_weight', type=float,
-                        default=1.0, help='Weight for analogy loss.')
     parser.add_argument('--tv-w', dest='tv_weight', type=float,
                         default=1.0, help='Weight for TV loss.')
+    parser.add_argument('--analogy-w', dest='analogy_weight', type=float,
+                        default=1.0, help='Weight for analogy loss.')
     parser.add_argument('--analogy-layers', dest='analogy_layers', action=CommaSplitAction,
                         default=['conv3_1', 'conv4_1'],
                         help='Comma-separated list of layer names to be used for the analogy loss')
+    parser.add_argument('--use-full-analogy', dest='use_full_analogy', action="store_true",
+                        help='Use the full set of analogy patches (slower/more memory but maybe more accurate)')
+    parser.add_argument('--mrf-w', dest='mrf_weight', type=float,
+                        default=0.5, help='Weight for MRF loss between A\' and B\'')
     parser.add_argument('--mrf-layers', dest='mrf_layers', action=CommaSplitAction,
                         default=['conv3_1', 'conv4_1'],
                         help='Comma-separated list of layer names to be used for the MRF loss')
+    parser.add_argument('--b-content-w', dest='b_bp_content_weight', type=float,
+                        default=0.0, help='Weight for content loss between B and B\'')
     parser.add_argument('--content-layers', dest='b_content_layers', action=CommaSplitAction,
                         default=['conv3_1', 'conv4_1'],
                         help='Comma-separated list of layer names to be used for the content loss')
-    parser.add_argument('--use-full-analogy', dest='use_full_analogy', action="store_true",
-                        help='Use the full set of analogy patches (slower/more memory but maybe more accurate)')
     parser.add_argument('--patch-size', dest='patch_size', type=int,
                         default=1, help='Patch size used for matching.')
     parser.add_argument('--patch-stride', dest='patch_stride', type=int,
