@@ -113,7 +113,8 @@ Parameters
     them into one image (slower/more memory but maybe more accurate)
  * --model Select the patch matching model ('patchmatch' or 'brute') patchmatch is
   the default and requires less GPU memory but is less accurate then brute.
-
+ * --nstyle-w Weight for neural style loss between A' and B'
+ * --nstyle-layers Comma-separated list of layer names to be used for the neural style
 The analogy loss is the amount of influence of B -> A -> A' -> B'. It's a
 structure-preserving mapping of Image B into A' via A.
 

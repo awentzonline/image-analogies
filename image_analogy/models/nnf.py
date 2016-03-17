@@ -5,6 +5,7 @@ from keras import backend as K
 
 from image_analogy.losses.core import content_loss
 from image_analogy.losses.nnf import nnf_analogy_loss, NNFState, PatchMatcher
+from image_analogy.losses.neural_style import neural_style_loss
 
 from .base import BaseModel
 
@@ -94,5 +95,15 @@ class NNFModel(BaseModel):
                 bp_features = self.get_layer_output(layer_name)
                 cl = content_loss(bp_features, b_features)
                 loss += self.args.b_bp_content_weight / len(self.args.b_content_layers) * cl
+
+        if self.args.neural_style_weight != 0.0:
+            for layer_name in self.args.neural_style_layers:
+                ap_image_features = K.variable(all_ap_image_features[layer_name][0])
+                layer_features = self.get_layer_output(layer_name)
+                layer_shape = self.get_layer_output_shape(layer_name)
+                # current combined output
+                combination_features = layer_features[0, :, :, :]
+                nsl = neural_style_loss(ap_image_features, combination_features, 3, self.output_shape[-2], self.output_shape[-1])
+                loss += (self.args.neural_style_weight / len(self.args.neural_style_layers)) * nsl
 
         return loss
