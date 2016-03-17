@@ -47,6 +47,7 @@ class PatchMatcher(object):
             num_propagation_steps=5, num_random_steps=5, random_max_radius=1.0, random_scale=0.5):
         self.input_shape = input_shape
         self.patch_size = patch_size
+        self.patch_stride = patch_stride
         self.jump_size = jump_size
         self.num_propagation_steps = num_propagation_steps
         self.num_random_steps = num_random_steps
