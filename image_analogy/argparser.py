@@ -70,6 +70,11 @@ def parse_args():
     parser.add_argument('--content-layers', dest='b_content_layers', action=CommaSplitAction,
                         default=['conv3_1', 'conv4_1'],
                         help='Comma-separated list of layer names to be used for the content loss')
+    parser.add_argument('--nstyle-w', dest='neural_style_weight', type=float,
+                        default=0.5, help='Weight for neural style loss between A\' and B\'')
+    parser.add_argument('-nstyle-layers', dest='neural_style_layers', action=CommaSplitAction,
+                        default=['conv2_1', 'conv3_1', 'conv4_1', 'conv5_1'],
+                        help='Comma-separated list of layer names to be used for the neural style')
     parser.add_argument('--patch-size', dest='patch_size', type=int,
                         default=1, help='Patch size used for matching.')
     parser.add_argument('--patch-stride', dest='patch_stride', type=int,

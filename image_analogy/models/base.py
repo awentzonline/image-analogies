@@ -47,6 +47,8 @@ class BaseModel(object):
             ap_layers.update(self.args.mrf_layers)
         if self.args.b_bp_content_weight:
             b_layers.update(self.args.b_content_layers)
+        if self.args.neural_style_weight:
+            ap_layers.update(self.args.neural_style_layers)
         # let's get those features
         all_a_features = self.get_features(a_image, a_layers)
         all_ap_image_features = self.get_features(ap_image, ap_layers)
