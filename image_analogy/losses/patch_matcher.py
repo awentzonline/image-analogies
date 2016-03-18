@@ -141,7 +141,7 @@ class PatchMatcher(object):
         '''
         new_matcher = PatchMatcher(new_shape, new_target_img, patch_size=self.patch_size,
                 patch_stride=self.patch_stride, jump_size=self.jump_size,
-                num_propagation_steps=self.num_input_rows,
+                num_propagation_steps=self.num_propagation_steps,
                 num_random_steps=self.num_random_steps,
                 random_max_radius=self.random_max_radius,
                 random_scale=self.random_scale)
