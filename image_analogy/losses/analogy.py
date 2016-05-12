@@ -27,7 +27,7 @@ def analogy_loss(a, a_prime, b, b_prime, patch_size=3, patch_stride=1, use_full_
     '''http://www.mrl.nyu.edu/projects/image-analogies/index.html'''
     best_a_prime_patches = find_analogy_patches(a, a_prime, b, patch_size=patch_size, patch_stride=patch_stride)
     if use_full_analogy:  # combine all the patches into a single image
-        b_prime_patches, _ = make_patches(b_prime, patch_size, patch_stride)
+        b_prime_patches, _ = patches.make_patches(b_prime, patch_size, patch_stride)
         loss = content_loss(best_a_prime_patches, b_prime_patches) / patch_size ** 2
     else:
         bs = b.shape
