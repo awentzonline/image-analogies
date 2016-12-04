@@ -93,20 +93,7 @@ def parse_args():
                         default=0.02, help='Drop the bottom x percentile and scale by the top (100 - x)th percentile')
     args = parser.parse_args()
 
-    # hack for CPU users :(
     assert args.a_scale_mode in ('ratio', 'none', 'match'), 'a-scale-mode must be set to one of "ratio", "none", or "match"'
-    # if K.backend() == 'theano':
-    #     from keras.backend import theano_backend
-    #     if args.a_scale_mode != 'match':
-    #         if not theano_backend._on_gpu():
-    #             print('Theano CPU mode detected. Forcing a-scale-mode to "match"')
-    #             args.a_scale_mode = 'match'  # prevent conv2d errors when using CPU
-    #             args.a_scale = 1.0
-    #         elif theano_backend.dnn and not theano_backend.dnn.dnn_available():
-    #             print('Theano CUDA without cuDNN detected. Forcing a-scale-mode to "match"')
-    #             args.a_scale_mode = 'match'  # prevent conv2d errors when using CUDA without cuDNN
-    #             args.a_scale = 1.0
-
     # make sure weights are in place
     if not os.path.exists(args.vgg_weights):
         print('Model weights not found (see "--vgg-weights" parameter).')
