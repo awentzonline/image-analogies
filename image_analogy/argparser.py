@@ -94,6 +94,9 @@ def parse_args():
     args = parser.parse_args()
 
     assert args.a_scale_mode in ('ratio', 'none', 'match'), 'a-scale-mode must be set to one of "ratio", "none", or "match"'
+    if K.backend() == 'tensorflow':
+        print('Tensorflow detected. Forcing --a-scale-mode=match (A images are scaled to same size as B images)')
+        args.a_scale_mode = 'match'
     # make sure weights are in place
     if not os.path.exists(args.vgg_weights):
         print('Model weights not found (see "--vgg-weights" parameter).')
