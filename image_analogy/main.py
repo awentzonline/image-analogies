@@ -3,6 +3,7 @@ import time
 
 import numpy as np
 import scipy.ndimage
+from keras import backend as K
 from scipy.misc import imsave
 
 from image_analogy import img_utils, vgg16
@@ -11,6 +12,7 @@ from image_analogy.optimizer import Optimizer
 
 def main(args, model_class):
     '''The main loop which does the things.'''
+    K.set_image_dim_ordering('th')
     # calculate scales
     if args.num_scales > 1:
         step_scale_factor = (1 - args.min_scale) / (args.num_scales - 1)
