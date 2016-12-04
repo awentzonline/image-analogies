@@ -40,7 +40,7 @@ def main(args, model_class):
         img_height = int(round(full_img_height * scale_factor))
         # prepare the current optimizer state
         if x is None:  # we need to create an initial state
-            x = np.random.uniform(0, 255, (img_height, img_width, 3))
+            x = np.random.uniform(0, 255, (img_height, img_width, 3)).astype(np.float32)
             x = vgg16.img_to_vgg(x)
         else:  # resize the last state
             zoom_ratio = img_width / float(x.shape[-1])

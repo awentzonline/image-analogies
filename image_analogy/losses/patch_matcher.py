@@ -35,7 +35,7 @@ def combine_patches_grid(in_patches, out_shape):
     in_patches = np.reshape(in_patches, (num_patches, num_channels, patch_size, patch_size))  # (patches, channels, pr, pc)
     in_patches = np.transpose(in_patches, (0, 2, 3, 1)) # (patches, p, p, channels)
     recon = reconstruct_from_patches_2d(in_patches, out_shape)
-    return recon.transpose(2, 1, 0)
+    return recon.transpose(2, 1, 0).astype(np.float32)
 
 
 class PatchMatcher(object):
@@ -58,7 +58,7 @@ class PatchMatcher(object):
         self.target_patches_normed = self.normalize_patches(self.target_patches)
         self.coords = np.random.uniform(0.0, 1.0,  # TODO: switch to pixels
             (2, self.num_input_rows, self.num_input_cols))# * [[[self.num_input_rows]],[[self.num_input_cols]]]
-        self.similarity = np.zeros(input_shape[:2:-1], dtype ='float32')
+        self.similarity = np.zeros(input_shape[:2:-1], dtype=np.float32)
         self.min_propagration_row = 1.0 / self.num_input_rows
         self.min_propagration_col = 1.0 / self.num_input_cols
         self.delta_row = np.array([[[self.min_propagration_row]], [[0.0]]])
