@@ -50,7 +50,14 @@ def combine_patches(patches, out_shape):
 
 def find_patch_matches(a, a_norm, b):
     '''For each patch in A, find the best matching patch in B'''
-    # we want cross-correlation here so flip the kernels
-    convs = K.conv2d(a, b[:, :, ::-1, ::-1], border_mode='valid')
+    convs = None
+    if K.backend() == 'theano':
+        # HACK: This was not being performed on the GPU for some reason.
+        from theano.sandbox.cuda import dnn
+        if dnn.dnn_available():
+            convs = dnn.dnn_conv(
+                img=a, kerns=b[:, :, ::-1, ::-1], border_mode='valid')
+    if convs is None:
+        convs = K.conv2d(a, b[:, :, ::-1, ::-1], border_mode='valid')
     argmax = K.argmax(convs / a_norm, axis=1)
     return argmax
