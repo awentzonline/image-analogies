@@ -7,4 +7,4 @@ PyYAML==3.11
 scipy==0.17.0
 scikit-learn==0.17.0
 six==1.10.0
--e git://github.com/Theano/Theano.git@954c3816a40de172c28124017a25387f3bf551b2#egg=Theano
+theano>=0.8.1
