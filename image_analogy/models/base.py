@@ -69,7 +69,7 @@ class BaseModel(object):
     def get_layer_output(self, name):
         if not name in self._f_layer_outputs:
             layer = self.layer_map[name]
-            self._f_layer_outputs[name] = layer.get_output()
+            self._f_layer_outputs[name] = layer.output
         return self._f_layer_outputs[name]
 
     def get_layer_output_shape(self, name):
