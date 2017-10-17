@@ -7,6 +7,8 @@ from keras.layers.convolutional import (
     AveragePooling2D, Convolution2D, MaxPooling2D, ZeroPadding2D)
 from keras.models import Sequential
 
+from keras import __version__ as keras_version
+from distutils.version import StrictVersion
 
 def img_from_vgg(x):
     '''Decondition an image from the VGG16 model.'''
@@ -83,6 +85,22 @@ def get_model(img_width, img_height, weights_path='vgg16_weights.h5', pool_mode=
             break
         g = f['layer_{}'.format(k)]
         weights = [g['param_{}'.format(p)] for p in range(g.attrs['nb_params'])]
+
+        # Check if your version of keras version '2.0.0' or above.
+        if StrictVersion(keras_version) >= StrictVersion('2.0.0'):
+            # If your version of keras version '2.0.0' or above,
+            # then 
+            # 1. convert each element x of the list 'weights'
+            #    into a numpy array, 
+            # 2. transpose each of those arrays, and
+            # 3. save the list of transposed arrays back to
+            #    the 'weights' list.
+            weights_T = [np.array(x).T for x in weights]
+            weights = weights_T            
+        
+        # else, leave the 'weights' list unchanged
+        # leave the elements of 'weights' untransposed.
+
         layer = model.layers[k]
         if isinstance(layer, Convolution2D):
             weights[0] = np.array(weights[0])[:, :, ::-1, ::-1]
