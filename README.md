@@ -51,10 +51,10 @@ e.g.:
 
 `make_image_analogy.py images/arch-mask.jpg images/arch.jpg images/arch-newmask.jpg out/arch`
 
-The examples directory has a script, `render_example.sh` which accepts an example
+The examples directory has a script, `render-example.sh` which accepts an example
 name prefix and, optionally the location of your vgg weights.
 
-`./render_example.sh arch /path/to/your/weights.h5`
+`./render-example.sh arch /path/to/your/weights.h5`
 
 Currently, A and A' must be the same size, the same holds for B and B'.
 Output size is the same as Image B, unless specified otherwise.
