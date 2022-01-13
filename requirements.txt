@@ -2,7 +2,7 @@ Cython==0.23.4
 h5py==2.5.0
 Keras==1.1.1
 numpy==1.10.4
-Pillow==3.1.1
+Pillow==9.0.0
 PyYAML==3.11
 scipy==0.17.0
 scikit-learn==0.17.0
